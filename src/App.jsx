@@ -21,6 +21,7 @@ const App = () => {
   const [detail, setDetail] = useState("balanced");
   const [colorFormat, setColorFormat] = useState("hex");
   const [colors, setColors] = useState([]);
+  const [hiddenKeys, setHiddenKeys] = useState(new Set());
   const photoContainer = useRef(null);
   const canvasRef = useRef(null);
   const inputRef = useRef(null);
@@ -29,6 +30,7 @@ const App = () => {
     (imageData, width, height, opts) => {
       const result = extractPalette(imageData, width, height, opts);
       setColors(result);
+      setHiddenKeys(new Set());
     },
     []
   );
@@ -110,15 +112,41 @@ const App = () => {
     photoContainer.current.classList.remove("drag-over");
   };
 
+  const handleRemoveColor = useCallback((color) => {
+    setHiddenKeys((prev) => new Set(prev).add(color.join(",")));
+  }, []);
+
+  const visibleColors = colors.filter(
+    (c) => !hiddenKeys.has(c.color.join(","))
+  );
+
   const downloadPalette = useCallback(() => {
-    if (colors.length === 0) return;
+    if (visibleColors.length === 0) return;
+
+    const getHue = (r, g, b) => {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      if (max === min) return 0;
+      const d = max - min;
+      let h;
+      if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+      else if (max === g) h = ((b - r) / d + 2) / 6;
+      else h = ((r - g) / d + 4) / 6;
+      return h;
+    };
+
+    const sorted = [...visibleColors].sort(
+      (a, b) => getHue(...a.color) - getHue(...b.color)
+    );
+
     const canvas = document.createElement("canvas");
     canvas.width = 1200;
     canvas.height = 800;
     const ctx = canvas.getContext("2d");
-    const stripeW = 1200 / colors.length;
+    const stripeW = 1200 / sorted.length;
 
-    colors.forEach((c, i) => {
+    sorted.forEach((c, i) => {
       ctx.fillStyle = `rgb(${c.color[0]}, ${c.color[1]}, ${c.color[2]})`;
       ctx.fillRect(i * stripeW, 0, stripeW, 800);
 
@@ -139,34 +167,30 @@ const App = () => {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  }, [colors, colorFormat, fileName]);
+  }, [visibleColors, colorFormat, fileName]);
 
   const hasImage = fileName !== "";
 
-  const handleOriginalPaneClick = useCallback(() => {
-    if (!hasImage) {
-      inputRef.current?.click();
-    }
-  }, [hasImage]);
+  const clearImage = useCallback(() => {
+    imgSrc = undefined;
+    lastImageData = undefined;
+    lastWidth = undefined;
+    lastHeight = undefined;
+    setFileName("");
+    setImage("");
+    setColors([]);
+    setHiddenKeys(new Set());
+  }, []);
 
-  let helperContent;
-  if (!hasImage) {
-    helperContent = (
-      <span className="helper-step">
-        Drop an image here or click to upload
-      </span>
-    );
-  } else {
-    helperContent = isMobile ? (
-      <span className="helper-step">Tap swatches to copy color values</span>
-    ) : (
-      <>
-        <span className="helper-step">Click swatches to copy</span>
-        <span className="helper-dot" />
-        <span className="helper-step">Download palette as image</span>
-      </>
-    );
-  }
+  const handleOriginalPaneClick = useCallback(() => {
+    inputRef.current?.click();
+  }, []);
+
+  const helperContent = !hasImage ? (
+    <span className="helper-step">
+      Drop an image here or click to upload
+    </span>
+  ) : null;
 
   return (
     <div className="app-shell">
@@ -182,9 +206,11 @@ const App = () => {
         onChangeImage={() => inputRef.current?.click()}
         isMobile={isMobile}
       />
-      <div className="helper-bar">
-        <div className="helper-text">{helperContent}</div>
-      </div>
+      {helperContent && (
+        <div className="helper-bar">
+          <div className="helper-text">{helperContent}</div>
+        </div>
+      )}
       <div className="container">
         <div
           ref={photoContainer}
@@ -199,6 +225,9 @@ const App = () => {
                 <div className="split-pane original-pane">
                   <div className="pane-label">Source</div>
                   <div className="image-wrapper">
+                    <button className="image-remove" onClick={clearImage}>
+                      &times;
+                    </button>
                     <img
                       className="image-file"
                       src={image}
@@ -209,9 +238,10 @@ const App = () => {
                 <div className="split-pane palette-pane">
                   <div className="pane-label">Palette</div>
                   <Palette
-                    colors={colors}
+                    colors={visibleColors}
                     format={colorFormat}
                     onDownload={downloadPalette}
+                    onRemoveColor={handleRemoveColor}
                   />
                 </div>
               </div>
@@ -233,13 +263,16 @@ const App = () => {
             <div className="split-view">
               <div
                 className="split-pane original-pane"
-                onClick={handleOriginalPaneClick}
+                onClick={hasImage ? undefined : handleOriginalPaneClick}
               >
                 <div className="pane-label">
                   {hasImage ? "Source" : "Upload"}
                 </div>
                 {hasImage ? (
                   <div className="image-wrapper">
+                    <button className="image-remove" onClick={clearImage}>
+                      &times;
+                    </button>
                     <img
                       className="image-file"
                       src={image}
@@ -260,9 +293,10 @@ const App = () => {
                 <div className="pane-label">Palette</div>
                 {hasImage ? (
                   <Palette
-                    colors={colors}
+                    colors={visibleColors}
                     format={colorFormat}
                     onDownload={downloadPalette}
+                    onRemoveColor={handleRemoveColor}
                   />
                 ) : (
                   <div className="empty-preview">

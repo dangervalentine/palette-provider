@@ -4,6 +4,8 @@ export const DETAIL_CONFIG = {
   rich: { maxDepth: 5, minBucketFraction: 0.005 },
 };
 
+const MIN_SPLIT_RANGE = 0.01;
+
 function computeLeaf(pixels) {
   const center = [0, 0, 0];
   for (const p of pixels) {
@@ -47,7 +49,7 @@ export function medianCut(oklabPixels, detail) {
       }
     }
 
-    if (maxRange === 0) return [computeLeaf(pixels)];
+    if (maxRange < MIN_SPLIT_RANGE) return [computeLeaf(pixels)];
 
     pixels.sort((a, b) => a[splitAxis] - b[splitAxis]);
     const mid = Math.floor(pixels.length / 2);

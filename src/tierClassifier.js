@@ -7,13 +7,12 @@ export function classifyTiers(colors) {
   }));
   const maxPct = withPct[0].percentage;
   const minPct = withPct[withPct.length - 1].percentage;
+  if (colors.length === 1) {
+    return withPct.map((c) => ({ ...c, tier: "dominant" }));
+  }
   const isEven = maxPct < minPct * 1.5 || maxPct - minPct < 5;
-  if (isEven && colors.length >= 3) {
-    const third = Math.max(1, Math.floor(colors.length / 3));
-    return withPct.map((c, i) => ({
-      ...c,
-      tier: i < third ? "dominant" : i < third * 2 ? "supporting" : "accent",
-    }));
+  if (isEven) {
+    return withPct.map((c) => ({ ...c, tier: "supporting" }));
   }
   let dominantCount = 0;
   let cumulativePct = 0;

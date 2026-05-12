@@ -36,9 +36,10 @@ describe("classifyTiers", () => {
   it("handles evenly distributed colors", () => {
     const colors = Array.from({ length: 6 }, (_, i) => ({ color: [i*40,0,0], count: 100 }));
     const result = classifyTiers(colors);
-    expect(result.filter((c) => c.tier === "dominant").length).toBeGreaterThanOrEqual(1);
-    expect(result.filter((c) => c.tier === "supporting").length).toBeGreaterThanOrEqual(1);
     expect(result).toHaveLength(6);
+    result.forEach((c) => {
+      expect(c.tier).toBe("supporting");
+    });
   });
   it("includes percentage field", () => {
     const colors = [

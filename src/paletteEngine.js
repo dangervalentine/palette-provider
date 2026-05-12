@@ -5,6 +5,7 @@ import { classifyTiers } from "./tierClassifier";
 
 const TARGET_SAMPLES = 10000;
 const KMEANS_POLISH_ITERATIONS = 8;
+const DEDUP_MIN_DISTANCE = 0.025;
 const DESIGN_MIN_DISTANCE = 0.05;
 const COMPLETE_OUTLIER_THRESHOLD = 0.1;
 
@@ -26,14 +27,14 @@ export function stratifiedSample(imageData, width, height, targetCount) {
   return pixels;
 }
 
-function designPostProcess(clusters) {
+function mergeClusters(clusters, minDistance) {
   const result = clusters.map((c) => ({ ...c }));
   let merged = true;
   while (merged) {
     merged = false;
     for (let i = 0; i < result.length && !merged; i++) {
       for (let j = i + 1; j < result.length && !merged; j++) {
-        if (oklabDistance(result[i].color, result[j].color) < DESIGN_MIN_DISTANCE) {
+        if (oklabDistance(result[i].color, result[j].color) < minDistance) {
           result[i].count += result[j].count;
           result.splice(j, 1);
           merged = true;
@@ -84,8 +85,10 @@ export function extractPalette(
     initialCenters,
   });
 
+  clusters = mergeClusters(clusters, DEDUP_MIN_DISTANCE);
+
   if (mode === "design") {
-    clusters = designPostProcess(clusters);
+    clusters = mergeClusters(clusters, DESIGN_MIN_DISTANCE);
   } else if (mode === "complete") {
     clusters = completePostProcess(clusters, oklabPixels);
   }

@@ -1,13 +1,13 @@
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="103.5px" height="103.5px" viewBox="0 0 103.5 103.5" enable-background="new 0 0 103.5 103.5" xml:space="preserve">
     <g>
-        <rect fill="#F07178" width="34.5" height="34.5" />
-        <rect x="34.5" fill="#FFAB70" width="34.5" height="34.5" />
-        <rect x="69" fill="#FFCB6B" width="34.5" height="34.5" />
-        <rect y="34.5" fill="#C3E88D" width="34.5" height="34.5" />
-        <rect x="34.5" y="34.5" fill="#7fdbca" width="34.5" height="34.5" />
-        <rect x="69" y="34.5" fill="#C792EA" width="34.5" height="34.5" />
+        <rect fill="#C3E88D" width="34.5" height="34.5" />
+        <rect x="34.5" fill="#FFCB6B" width="34.5" height="34.5" />
+        <rect x="69" fill="#FFAB70" width="34.5" height="34.5" />
+        <rect y="34.5" fill="#7fdbca" width="34.5" height="34.5" />
+        <rect x="34.5" y="34.5" fill="#4976A1" width="34.5" height="34.5" />
+        <rect x="69" y="34.5" fill="#F07178" width="34.5" height="34.5" />
         <rect y="69" fill="#AFC6FF" width="34.5" height="34.5" />
         <rect x="34.5" y="69" fill="#82AAFF" width="34.5" height="34.5" />
-        <rect x="69" y="69" fill="#4976A1" width="34.5" height="34.5" />
+        <rect x="69" y="69" fill="#C792EA" width="34.5" height="34.5" />
     </g>
 </svg>

@@ -1,7 +1,7 @@
 import Swatch from "./Swatch";
 import { formatColor, copyToClipboard } from "./helpers";
 
-const Palette = ({ colors, format, onDownload }) => {
+const Palette = ({ colors, format, onDownload, onRemoveColor }) => {
   if (colors.length === 0) {
     return (
       <div className="palette-panel">
@@ -38,57 +38,43 @@ const Palette = ({ colors, format, onDownload }) => {
           <h3>Palette</h3>
           <span className="palette-count">{colors.length} colors</span>
         </div>
-        <div className="palette-actions">
-          <button className="btn-ghost" onClick={copyAll}>
-            Copy All
-          </button>
-          <button className="btn-ghost" onClick={onDownload}>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M8 2v8M8 10l-3-3M8 10l3-3M3 13h10"
-                stroke="currentColor"
-                strokeWidth="1.3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>Download</span>
-          </button>
-        </div>
       </div>
 
-      <div className="swatch-grid">
-        {colors.map((c) => (
-          <Swatch
-            key={c.color.join(",")}
-            color={c.color}
-            format={format}
-          />
-        ))}
-      </div>
+      {tiers.map(
+        (tier) =>
+          grouped[tier] && (
+            <div key={tier} className="tier-group">
+              <span className="tier-label">{tier}</span>
+              <div className="swatch-grid">
+                {grouped[tier].map((c) => (
+                  <Swatch
+                    key={c.color.join(",")}
+                    color={c.color}
+                    format={format}
+                    onRemove={onRemoveColor}
+                  />
+                ))}
+              </div>
+            </div>
+          )
+      )}
 
-      <div className="color-list-block">
-        <div className="color-list-header">
-          <span>All colors — click to copy</span>
-          <button className="color-list-copy" onClick={copyAll}>
-            Copy
-          </button>
-        </div>
-        <div className="color-list-text">
-          {tiers.map(
-            (tier) =>
-              grouped[tier] && (
-                <div key={tier}>
-                  <span className="tier-comment">/* {tier} */</span>{" "}
-                  <span className={`${tier}-colors`}>
-                    {grouped[tier]
-                      .map((c) => formatColor(c.color, format))
-                      .join(", ")}
-                  </span>
-                </div>
-              )
-          )}
-        </div>
+      <div className="palette-actions">
+        <button className="btn-ghost" onClick={copyAll}>
+          Copy All
+        </button>
+        <button className="btn-ghost" onClick={onDownload}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <path
+              d="M8 2v8M8 10l-3-3M8 10l3-3M3 13h10"
+              stroke="currentColor"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span>Download</span>
+        </button>
       </div>
     </div>
   );
