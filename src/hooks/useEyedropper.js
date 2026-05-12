@@ -17,8 +17,8 @@ export function samplePixel(ctx, x, y) {
   return [data[0], data[1], data[2]];
 }
 
-export function useEyedropper(canvasRef, colorFormat, formatColorFn, onSample) {
-  const [preview, setPreview] = useState(null); // { x, y, color, label }
+export function useEyedropper(canvasRef, onSample) {
+  const [preview, setPreview] = useState(null); // { x, y, color }
   const longPressTimer = useRef(null);
   const isLongPress = useRef(false);
   const imgRef = useRef(null);
@@ -48,16 +48,11 @@ export function useEyedropper(canvasRef, colorFormat, formatColorFn, onSample) {
         isLongPress.current = true;
         const rgb = getSample(clientX, clientY);
         if (rgb) {
-          setPreview({
-            x: clientX,
-            y: clientY,
-            color: rgb,
-            label: formatColorFn(rgb, colorFormat),
-          });
+          setPreview({ x: clientX, y: clientY, color: rgb });
         }
       }, LONG_PRESS_MS);
     },
-    [getSample, colorFormat, formatColorFn]
+    [getSample]
   );
 
   const handlePointerMove = useCallback(
@@ -68,15 +63,10 @@ export function useEyedropper(canvasRef, colorFormat, formatColorFn, onSample) {
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       const rgb = getSample(clientX, clientY);
       if (rgb) {
-        setPreview({
-          x: clientX,
-          y: clientY,
-          color: rgb,
-          label: formatColorFn(rgb, colorFormat),
-        });
+        setPreview({ x: clientX, y: clientY, color: rgb });
       }
     },
-    [getSample, colorFormat, formatColorFn]
+    [getSample]
   );
 
   const handlePointerUp = useCallback(
@@ -99,6 +89,12 @@ export function useEyedropper(canvasRef, colorFormat, formatColorFn, onSample) {
     [getSample, onSample]
   );
 
+  const handleCancel = useCallback(() => {
+    clearTimeout(longPressTimer.current);
+    isLongPress.current = false;
+    setPreview(null);
+  }, []);
+
   const bindImage = useCallback((imgEl) => {
     imgRef.current = imgEl;
   }, []);
@@ -110,9 +106,11 @@ export function useEyedropper(canvasRef, colorFormat, formatColorFn, onSample) {
       onMouseDown: handlePointerDown,
       onMouseMove: handlePointerMove,
       onMouseUp: handlePointerUp,
+      onMouseLeave: handleCancel,
       onTouchStart: handlePointerDown,
       onTouchMove: handlePointerMove,
       onTouchEnd: handlePointerUp,
+      onTouchCancel: handleCancel,
     },
   };
 }

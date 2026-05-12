@@ -34,7 +34,7 @@ const App = () => {
     setSampledColors((prev) => [...prev, sampledColor]);
   }, []);
 
-  const eyedropper = useEyedropper(canvasRef, colorFormat, formatColor, handleSampleColor);
+  const eyedropper = useEyedropper(canvasRef, handleSampleColor);
 
   const runExtraction = useCallback(
     (imageData, width, height, opts) => {
