@@ -1,7 +1,7 @@
-import Color from "./Color";
+import Swatch from "./Swatch";
 import { formatColor, copyToClipboard } from "./helpers";
 
-const Palette = ({ colors, format }) => {
+const Palette = ({ colors, format, onDownload }) => {
   if (colors.length === 0) {
     return (
       <div className="palette-panel">
@@ -38,30 +38,34 @@ const Palette = ({ colors, format }) => {
           <h3>Palette</h3>
           <span className="palette-count">{colors.length} colors</span>
         </div>
-        <button className="copy-all-button" onClick={copyAll}>
-          Copy All
-        </button>
+        <div className="palette-actions">
+          <button className="btn-ghost" onClick={copyAll}>
+            Copy All
+          </button>
+          <button className="btn-ghost" onClick={onDownload}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M8 2v8M8 10l-3-3M8 10l3-3M3 13h10"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>Download</span>
+          </button>
+        </div>
       </div>
 
-      {tiers.map(
-        (tier) =>
-          grouped[tier] && (
-            <div className="tier-group" key={tier}>
-              <div className={`tier-label ${tier}`}>{tier}</div>
-              <div className="tier-swatches">
-                {grouped[tier].map((c) => (
-                  <Color
-                    key={c.color.join(",")}
-                    color={c.color}
-                    tier={c.tier}
-                    percentage={c.percentage}
-                    format={format}
-                  />
-                ))}
-              </div>
-            </div>
-          )
-      )}
+      <div className="swatch-grid">
+        {colors.map((c) => (
+          <Swatch
+            key={c.color.join(",")}
+            color={c.color}
+            format={format}
+          />
+        ))}
+      </div>
 
       <div className="color-list-block">
         <div className="color-list-header">
