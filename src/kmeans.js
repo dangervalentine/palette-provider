@@ -40,12 +40,14 @@ function initCenters(pixels, k) {
 }
 
 export function kMeansClustering(pixels, k, options = {}) {
-  const { maxIterations = 20, tolerance = 1 } = options;
+  const { maxIterations = 20, tolerance = 1, initialCenters = null } = options;
   if (pixels.length === 0) return [];
   const uniqueSet = new Set(pixels.map((p) => p.join(",")));
   const effectiveK = Math.min(k, uniqueSet.size);
   if (effectiveK <= 0) return [];
-  let centers = initCenters(pixels, effectiveK);
+  let centers = initialCenters
+    ? initialCenters.slice(0, effectiveK).map((c) => [...c])
+    : initCenters(pixels, effectiveK);
   let assignments = new Array(pixels.length);
   for (let iter = 0; iter < maxIterations; iter++) {
     for (let i = 0; i < pixels.length; i++) {

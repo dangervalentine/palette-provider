@@ -66,4 +66,14 @@ describe("kMeansClustering", () => {
     expect(result.length).toBeGreaterThanOrEqual(1);
     expect(result.length).toBeLessThanOrEqual(5);
   });
+  it("uses provided initial centers instead of random init", () => {
+    const reds = Array.from({ length: 50 }, () => [250, 5, 5]);
+    const blues = Array.from({ length: 50 }, () => [5, 5, 250]);
+    const initialCenters = [[255, 0, 0], [0, 0, 255]];
+    const result = kMeansClustering([...reds, ...blues], 2, { initialCenters });
+    expect(result).toHaveLength(2);
+    const sorted = result.sort((a, b) => b.color[0] - a.color[0]);
+    expect(sorted[0].color[0]).toBeGreaterThan(200);
+    expect(sorted[1].color[2]).toBeGreaterThan(200);
+  });
 });
