@@ -141,80 +141,6 @@ header {
   cursor: pointer;
 }
 
-/* ── Range Slider ───────────────────────────────────── */
-
-.range-wrap {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.range-input {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 120px;
-  height: var(--spacing-sm);
-  border-radius: var(--radius-pill);
-  outline: none;
-  cursor: pointer;
-}
-
-.range-input:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-.range-input::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: var(--spacing-xl);
-  height: var(--spacing-xl);
-  border-radius: 50%;
-  background: var(--color-primary-main);
-  border: var(--border-medium) solid var(--color-bg-elevated);
-  box-shadow: var(--shadow-small);
-  cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.range-input:not(:disabled)::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-  box-shadow: 0 0 0 4px var(--color-primary-tint), var(--shadow-small);
-}
-
-.range-input::-moz-range-thumb {
-  width: var(--spacing-xl);
-  height: var(--spacing-xl);
-  border-radius: 50%;
-  background: var(--color-primary-main);
-  border: var(--border-medium) solid var(--color-bg-elevated);
-  box-shadow: var(--shadow-small);
-  cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.range-input::-moz-range-track {
-  height: var(--spacing-sm);
-  border-radius: var(--radius-pill);
-  background: transparent;
-}
-
-.range-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 28px;
-  height: 22px;
-  padding: 0 var(--spacing-md);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-surface);
-  border: var(--border-thin) solid var(--color-border);
-  font-size: var(--font-size-tiny);
-  font-weight: var(--font-weight-bold);
-  font-variant-numeric: tabular-nums;
-  color: var(--color-accent-cyan);
-}
-
 /* ── Ghost Button ───────────────────────────────────── */
 
 .btn-ghost {
@@ -244,6 +170,46 @@ header {
   border-color: var(--color-primary-main);
   color: var(--color-primary-main);
   background: var(--color-primary-tint-soft);
+}
+
+/* ── Segmented Control ──────────────────────────────── */
+
+.segment-group {
+  display: flex;
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.segment-btn {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-tiny);
+  font-family: var(--font-family-body);
+  font-weight: var(--font-weight-semibold);
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.segment-btn:not(:last-child) {
+  border-right: var(--border-thin) solid var(--color-border);
+}
+
+.segment-btn.active {
+  background: var(--color-primary-main);
+  color: var(--color-neutral-white);
+}
+
+.segment-btn:not(.active):not(:disabled):hover {
+  background: var(--color-primary-tint-soft);
+  color: var(--color-primary-main);
+}
+
+.segment-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 /* ── Helper Bar ────────────────────────────────────── */
@@ -662,7 +628,6 @@ span.bold {
     padding: var(--spacing-sm) var(--spacing-md);
   }
   .toolbar-label { display: none; }
-  .range-input { width: 90px; }
 
   .helper-dot { display: none; }
   .helper-bar { padding: var(--spacing-sm) var(--spacing-md); }

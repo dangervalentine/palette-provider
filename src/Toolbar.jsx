@@ -1,32 +1,47 @@
+const DETAIL_OPTIONS = ["essential", "balanced", "rich"];
+
 const Toolbar = ({
   hasImage,
-  paletteSize,
-  onPaletteSizeChange,
+  mode,
+  onModeChange,
+  detail,
+  onDetailChange,
   colorFormat,
   onColorFormatChange,
   onChangeImage,
   isMobile,
 }) => {
-  const pct = ((paletteSize - 3) / 17) * 100;
-
   return (
     <div className="toolbar">
-      <div className="toolbar-group slider-group">
-        <span className="toolbar-label">Colors</span>
-        <div className="range-wrap">
-          <input
-            className="range-input"
-            type="range"
-            min="3"
-            max="20"
-            value={paletteSize}
-            onChange={(e) => onPaletteSizeChange(Number(e.target.value))}
-            disabled={!hasImage}
-            style={{
-              background: `linear-gradient(to right, var(--color-primary-main) 0%, var(--color-primary-main) ${pct}%, var(--color-border) ${pct}%, var(--color-border) 100%)`,
-            }}
-          />
-          <span className="range-badge">{paletteSize}</span>
+      <div className="toolbar-group">
+        <span className="toolbar-label">Mode</span>
+        <select
+          className="toolbar-select"
+          value={mode}
+          onChange={(e) => onModeChange(e.target.value)}
+          disabled={!hasImage}
+        >
+          <option value="faithful">Faithful</option>
+          <option value="design">Design</option>
+          <option value="complete">Complete</option>
+        </select>
+      </div>
+
+      <div className="toolbar-divider" />
+
+      <div className="toolbar-group">
+        <span className="toolbar-label">Detail</span>
+        <div className="segment-group">
+          {DETAIL_OPTIONS.map((opt) => (
+            <button
+              key={opt}
+              className={`segment-btn${detail === opt ? " active" : ""}`}
+              onClick={() => onDetailChange(opt)}
+              disabled={!hasImage}
+            >
+              {opt.charAt(0).toUpperCase() + opt.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -50,7 +65,13 @@ const Toolbar = ({
 
       <button className="btn-ghost" onClick={onChangeImage}>
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-          <path d="M8 2v5M8 7L5.5 4.5M8 7l2.5-2.5M3 10v2a1 1 0 001 1h8a1 1 0 001-1v-2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M8 2v5M8 7L5.5 4.5M8 7l2.5-2.5M3 10v2a1 1 0 001 1h8a1 1 0 001-1v-2"
+            stroke="currentColor"
+            strokeWidth="1.3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
         {!isMobile && <span>Upload</span>}
       </button>
