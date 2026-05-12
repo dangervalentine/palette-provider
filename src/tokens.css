@@ -1,0 +1,244 @@
+/*
+ * NextQuest Design Tokens
+ *
+ * Night Owl theme ported from app/src/constants/theme/colors.ts
+ * and app/src/constants/theme/theme.ts.
+ *
+ * Dark mode is the default. Light mode activates via
+ * data-theme="light" on <html>.
+ */
+
+/* ================================================================
+   DARK MODE (default)
+   ================================================================ */
+
+:root,
+:root[data-theme="dark"] {
+  /* --- Primary --- */
+  --color-primary-light: #AFC6FF;
+  --color-primary-main: #82AAFF;
+  --color-primary-dark: #4976A1;
+
+  /* --- Secondary --- */
+  --color-secondary-light: #A3B7C7;
+  --color-secondary-main: #8DA0AF;
+  --color-secondary-dark: #2A3F51;
+
+  /* --- Accents --- */
+  --color-accent-cyan: #7fdbca;
+  --color-accent-coral: #FFAB70;
+  --color-accent-green: #C3E88D;
+  --color-accent-pink: #F07178;
+  --color-accent-yellow: #FFCB6B;
+  --color-accent-purple: #C792EA;
+
+  /* --- Semantic --- */
+  --color-semantic-success: #C3E88D;
+  --color-semantic-warning: #FFCB6B;
+  --color-semantic-error: #F07178;
+  --color-semantic-info: #82AAFF;
+
+  /* --- Neutral --- */
+  --color-neutral-white: #FFFFFF;
+  --color-neutral-light-gray: #D6DEEB;
+  --color-neutral-gray: #637777;
+  --color-neutral-dark-gray: #1D3B53;
+  --color-neutral-black: #000000;
+
+  /* --- Background (darkest to lightest) --- */
+  --color-bg-floor: #010E18;
+  --color-bg-base: #011627;
+  --color-bg-surface: #0A1E30;
+  --color-bg-elevated: #132A3E;
+  --color-bg-medium: #1D3B53;
+  --color-bg-card: #011627;
+  --color-bg-scrim: rgba(1, 22, 39, 0.6);
+
+  /* --- Text --- */
+  --color-text-primary: #D6DEEB;
+  --color-text-secondary: #9DB2C0;
+  --color-text-muted: #7E8E94;
+  --color-text-inverse: #011627;
+
+  /* --- Border --- */
+  --color-border: #2A3F51;
+  --color-border-transparent: rgba(42, 63, 81, 0.53);
+
+  /* --- RGB variants for rgba() usage --- */
+  --color-primary-main-rgb: 130, 170, 255;
+  --color-accent-cyan-rgb: 127, 219, 202;
+  --color-accent-coral-rgb: 255, 171, 112;
+  --color-accent-green-rgb: 195, 232, 141;
+  --color-accent-pink-rgb: 240, 113, 120;
+  --color-accent-yellow-rgb: 255, 203, 107;
+  --color-accent-purple-rgb: 199, 146, 234;
+  --color-border-rgb: 42, 63, 81;
+  --color-neutral-white-rgb: 255, 255, 255;
+  --color-neutral-black-rgb: 0, 0, 0;
+  --color-bg-base-rgb: 1, 22, 39;
+  --color-text-primary-rgb: 214, 222, 235;
+
+  /* --- Tints: opaque muted variants (mix with bg-base) --- */
+  --color-primary-tint-soft: color-mix(in srgb, var(--color-primary-main) 14%, var(--color-bg-base));
+  --color-primary-tint: color-mix(in srgb, var(--color-primary-main) 22%, var(--color-bg-base));
+  --color-primary-tint-strong: color-mix(in srgb, var(--color-primary-main) 32%, var(--color-bg-base));
+  --color-accent-cyan-tint-soft: color-mix(in srgb, var(--color-accent-cyan) 14%, var(--color-bg-base));
+  --color-accent-cyan-tint: color-mix(in srgb, var(--color-accent-cyan) 22%, var(--color-bg-base));
+}
+
+
+/* ================================================================
+   LIGHT MODE
+   ================================================================ */
+
+:root[data-theme="light"] {
+  /* --- Primary --- */
+  --color-primary-light: #6FBEF6;
+  --color-primary-main: #4876D6;
+  --color-primary-dark: #288ED7;
+
+  /* --- Secondary --- */
+  --color-secondary-light: #A9C4D8;
+  --color-secondary-main: #87A4B8;
+  --color-secondary-dark: #5E7484;
+
+  /* --- Accents --- */
+  --color-accent-cyan: #176D67;
+  --color-accent-coral: #9B3F3D;
+  --color-accent-green: #0B6B51;
+  --color-accent-pink: #92215F;
+  --color-accent-yellow: #7A5B00;
+  --color-accent-purple: #6B2FA0;
+
+  /* --- Semantic --- */
+  --color-semantic-success: #0B6B51;
+  --color-semantic-warning: #7A5B00;
+  --color-semantic-error: #92215F;
+  --color-semantic-info: #4876D6;
+
+  /* --- Neutral --- */
+  --color-neutral-white: #FFFFFF;
+  --color-neutral-light-gray: #93A1A1;
+  --color-neutral-gray: #697098;
+  --color-neutral-dark-gray: #403F53;
+  --color-neutral-black: #000000;
+
+  /* --- Background (lightest to darkest) --- */
+  --color-bg-floor: #D6E4F2;
+  --color-bg-base: #EFEFEF;
+  --color-bg-surface: #E7ECF2;
+  --color-bg-elevated: #F6F6F6;
+  --color-bg-medium: #FBFBFB;
+  --color-bg-card: #EFEFEF;
+  --color-bg-scrim: rgba(64, 63, 83, 0.5);
+
+  /* --- Text --- */
+  --color-text-primary: #403F53;
+  --color-text-secondary: #5A607A;
+  --color-text-muted: #78808A;
+  --color-text-inverse: #FBFBFB;
+
+  /* --- Border --- */
+  --color-border: #5E7484;
+  --color-border-transparent: rgba(94, 116, 132, 0.53);
+
+  /* --- RGB variants --- */
+  --color-primary-main-rgb: 72, 118, 214;
+  --color-accent-cyan-rgb: 23, 109, 103;
+  --color-accent-coral-rgb: 155, 63, 61;
+  --color-accent-green-rgb: 11, 107, 81;
+  --color-accent-pink-rgb: 146, 33, 95;
+  --color-accent-yellow-rgb: 122, 91, 0;
+  --color-accent-purple-rgb: 107, 47, 160;
+  --color-border-rgb: 94, 116, 132;
+  --color-neutral-white-rgb: 255, 255, 255;
+  --color-neutral-black-rgb: 0, 0, 0;
+  --color-bg-base-rgb: 239, 239, 239;
+  --color-text-primary-rgb: 64, 63, 83;
+
+  /* --- Tints --- */
+  --color-primary-tint-soft: color-mix(in srgb, var(--color-primary-main) 14%, var(--color-bg-base));
+  --color-primary-tint: color-mix(in srgb, var(--color-primary-main) 22%, var(--color-bg-base));
+  --color-primary-tint-strong: color-mix(in srgb, var(--color-primary-main) 32%, var(--color-bg-base));
+  --color-accent-cyan-tint-soft: color-mix(in srgb, var(--color-accent-cyan) 14%, var(--color-bg-base));
+  --color-accent-cyan-tint: color-mix(in srgb, var(--color-accent-cyan) 22%, var(--color-bg-base));
+}
+
+
+/* ================================================================
+   THEME-AGNOSTIC TOKENS
+   ================================================================ */
+
+:root {
+  /* --- Typography --- */
+  --font-family-title: "Outfit", sans-serif;
+  --font-family-body: "Outfit", sans-serif;
+  --font-family-mono: "FiraCode", monospace;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --font-size-tiny: 0.6875rem;
+  --font-size-small: 0.8125rem;
+  --font-size-body: 0.9375rem;
+  --font-size-medium: 1.0625rem;
+  --font-size-large: 1.25rem;
+  --font-size-xlarge: 1.5rem;
+  --font-size-xxlarge: 2rem;
+  --font-size-display: 2.5rem;
+
+  --line-height-tiny: 1.2;
+  --line-height-small: 1.2;
+  --line-height-body: 1.45;
+  --line-height-medium: 1.35;
+  --line-height-large: 1.25;
+  --line-height-xlarge: 1.2;
+
+  /* --- Spacing --- */
+  --spacing-xs: 2px;
+  --spacing-sm: 4px;
+  --spacing-md: 8px;
+  --spacing-lg: 12px;
+  --spacing-xl: 16px;
+  --spacing-xxl: 20px;
+  --spacing-xxxl: 24px;
+  --spacing-4xl: 32px;
+  --spacing-5xl: 48px;
+  --spacing-6xl: 64px;
+
+  /* --- Border radii --- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 100px;
+
+  /* --- Border widths --- */
+  --border-hairline: 0.5px;
+  --border-thin: 1px;
+  --border-medium: 2px;
+  --border-heavy: 3px;
+
+  /* --- Shadows --- */
+  --shadow-small: 0 1px 2px rgba(0, 0, 0, 0.22);
+  --shadow-medium: 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-large: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-floating: 0 -2px 8px rgba(0, 0, 0, 0.25);
+
+  /* --- Z-index --- */
+  --z-base: 1;
+  --z-elevated: 2;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 1000;
+  --z-overlay: 1100;
+  --z-toast: 1200;
+
+  /* --- Transitions --- */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
+  --transition-theme: 300ms ease;
+}

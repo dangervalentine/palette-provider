@@ -22,8 +22,6 @@ const App = () => {
   const inputRef = useRef(null);
   const debounceRef = useRef(null);
 
-  const handleFormClick = () => inputRef.current.click();
-
   const processImg = useCallback(
     (file) => {
       if (!file && !imgSrc) return;
@@ -83,7 +81,6 @@ const App = () => {
     photoContainer.current.classList.remove("drag-over");
   };
 
-  // Debounced reprocess when palette size changes
   const handlePaletteSizeChange = useCallback(
     (newSize) => {
       setPaletteSize(newSize);
@@ -97,26 +94,31 @@ const App = () => {
 
   const hasImage = fileName !== "";
 
-  const imageEl =
-    image === "" ? (
-      <div>
-        <img src={upload} alt="upload" />
-        <div className="image-text">
-          <span className="bold">Choose a file</span> &nbsp;
-          {!isMobile && "or drag it here"}
-          <div className="tagline">
-            Extract color palettes from any image
-          </div>
-        </div>
-      </div>
-    ) : (
-      <div className="image-wrapper">
-        <img className="image-file" src={image} alt="uploaded file" />
-      </div>
+  const handleOriginalPaneClick = useCallback(() => {
+    if (!hasImage) {
+      inputRef.current?.click();
+    }
+  }, [hasImage]);
+
+  let helperContent;
+  if (!hasImage) {
+    helperContent = (
+      <span className="helper-step">Drop an image here or click to upload</span>
     );
+  } else {
+    helperContent = isMobile ? (
+      <span className="helper-step">Tap swatches to copy color values</span>
+    ) : (
+      <>
+        <span className="helper-step">Hover swatches to preview</span>
+        <span className="helper-dot" />
+        <span className="helper-step">Click to copy color value</span>
+      </>
+    );
+  }
 
   return (
-    <div>
+    <div className="app-shell">
       <Header />
       <Toolbar
         hasImage={hasImage}
@@ -124,7 +126,12 @@ const App = () => {
         onPaletteSizeChange={handlePaletteSizeChange}
         colorFormat={colorFormat}
         onColorFormatChange={setColorFormat}
+        onChangeImage={() => inputRef.current?.click()}
+        isMobile={isMobile}
       />
+      <div className="helper-bar">
+        <div className="helper-text">{helperContent}</div>
+      </div>
       <div className="container">
         <div
           ref={photoContainer}
@@ -133,15 +140,69 @@ const App = () => {
           onDragLeave={onDragLeave}
           onDrop={onDrop}
         >
-          <div
-            className={`photo${image === "" ? " border" : ""}`}
-            onClick={handleFormClick}
-          >
-            {imageEl}
-            <canvas ref={canvasRef} className="main-canvas" />
-          </div>
+          {isMobile ? (
+            hasImage ? (
+              <div className="split-view">
+                <div className="split-pane original-pane">
+                  <div className="pane-label">Source</div>
+                  <div className="image-wrapper">
+                    <img className="image-file" src={image} alt="uploaded file" />
+                  </div>
+                </div>
+                <div className="split-pane palette-pane">
+                  <div className="pane-label">Palette</div>
+                  <Palette colors={colors} format={colorFormat} />
+                </div>
+              </div>
+            ) : (
+              <div className="photo border" onClick={() => inputRef.current?.click()}>
+                <div className="empty-state">
+                  <img src={upload} alt="upload" />
+                  <div className="image-text">
+                    <span className="bold">Choose a file</span>
+                    <div className="tagline">or drag it here</div>
+                  </div>
+                </div>
+              </div>
+            )
+          ) : (
+            <div className="split-view">
+              <div className="split-pane original-pane" onClick={handleOriginalPaneClick}>
+                <div className="pane-label">{hasImage ? "Original" : "Upload"}</div>
+                {hasImage ? (
+                  <div className="image-wrapper">
+                    <img className="image-file" src={image} alt="uploaded file" />
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <img src={upload} alt="upload" />
+                    <div className="image-text">
+                      <span className="bold">Choose a file</span>
+                      <div className="tagline">or drag it here</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="split-pane palette-pane">
+                <div className="pane-label">Palette</div>
+                {hasImage ? (
+                  <Palette colors={colors} format={colorFormat} />
+                ) : (
+                  <div className="empty-preview">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                      <circle cx="15" cy="15" r="7" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 3" fill="currentColor" fillOpacity="0.15" />
+                      <circle cx="33" cy="15" r="7" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 3" fill="currentColor" fillOpacity="0.15" />
+                      <circle cx="15" cy="33" r="7" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 3" fill="currentColor" fillOpacity="0.15" />
+                      <circle cx="33" cy="33" r="7" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 3" fill="currentColor" fillOpacity="0.15" />
+                    </svg>
+                    <span>Your color palette will appear here</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          <canvas ref={canvasRef} className="main-canvas" />
         </div>
-        <Palette colors={colors} format={colorFormat} />
         <input
           ref={inputRef}
           accept="image/*"

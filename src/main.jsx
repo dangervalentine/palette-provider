@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { getInitialTheme, setTheme } from "./theme";
+import "./tokens.css";
 import App from "./App";
 
 setTheme(getInitialTheme());

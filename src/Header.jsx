@@ -26,11 +26,11 @@ const Header = () => {
         </a>
       </div>
       <div className="theme-toggle" onClick={toggle} role="button" tabIndex={0}>
-        <span>{mode === "dark" ? "\u263D" : ""}</span>
+        <span>{"\u263D"}</span>
         <div className="theme-toggle-track">
           <div className={`theme-toggle-thumb ${mode}`} />
         </div>
-        <span>{mode === "light" ? "\u2600" : ""}</span>
+        <span>{"\u2600"}</span>
       </div>
     </header>
   );
