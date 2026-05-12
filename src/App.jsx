@@ -4,6 +4,8 @@ import Toolbar from "./Toolbar";
 import Palette from "./Palette";
 import { extractPalette, formatColor } from "./helpers";
 import { useMediaQuery } from "./hooks/useMediaQuery";
+import EyedropperPreview from "./EyedropperPreview";
+import { useEyedropper } from "./hooks/useEyedropper";
 
 import "./App.css";
 import upload from "./upload.svg";
@@ -25,6 +27,14 @@ const App = () => {
   const photoContainer = useRef(null);
   const canvasRef = useRef(null);
   const inputRef = useRef(null);
+
+  const [sampledColors, setSampledColors] = useState([]);
+
+  const handleSampleColor = useCallback((sampledColor) => {
+    setSampledColors((prev) => [...prev, sampledColor]);
+  }, []);
+
+  const eyedropper = useEyedropper(canvasRef, colorFormat, formatColor, handleSampleColor);
 
   const runExtraction = useCallback(
     (imageData, width, height, opts) => {
@@ -56,6 +66,7 @@ const App = () => {
         lastImageData = ctx.getImageData(0, 0, w, h).data;
         lastWidth = w;
         lastHeight = h;
+        setSampledColors([]);
         runExtraction(lastImageData, w, h, { mode, detail });
       };
       img.src = imgSrc;
@@ -66,6 +77,7 @@ const App = () => {
   const reprocess = useCallback(
     (newMode, newDetail) => {
       if (!lastImageData) return;
+      setSampledColors([]);
       runExtraction(lastImageData, lastWidth, lastHeight, {
         mode: newMode,
         detail: newDetail,
@@ -116,9 +128,10 @@ const App = () => {
     setHiddenKeys((prev) => new Set(prev).add(color.join(",")));
   }, []);
 
-  const visibleColors = colors.filter(
-    (c) => !hiddenKeys.has(c.color.join(","))
-  );
+  const visibleColors = [
+    ...colors.filter((c) => !hiddenKeys.has(c.color.join(","))),
+    ...sampledColors.filter((c) => !hiddenKeys.has(c.color.join(","))),
+  ];
 
   const downloadPalette = useCallback(() => {
     if (visibleColors.length === 0) return;
@@ -180,6 +193,7 @@ const App = () => {
     setImage("");
     setColors([]);
     setHiddenKeys(new Set());
+    setSampledColors([]);
   }, []);
 
   const handleOriginalPaneClick = useCallback(() => {
@@ -229,9 +243,11 @@ const App = () => {
                       &times;
                     </button>
                     <img
-                      className="image-file"
+                      ref={eyedropper.bindImage}
+                      className="image-file eyedropper-active"
                       src={image}
                       alt="uploaded file"
+                      {...eyedropper.handlers}
                     />
                   </div>
                 </div>
@@ -274,9 +290,11 @@ const App = () => {
                       &times;
                     </button>
                     <img
-                      className="image-file"
+                      ref={eyedropper.bindImage}
+                      className="image-file eyedropper-active"
                       src={image}
                       alt="uploaded file"
+                      {...eyedropper.handlers}
                     />
                   </div>
                 ) : (
@@ -362,6 +380,7 @@ const App = () => {
           onChange={onChange}
         />
       </div>
+      <EyedropperPreview preview={eyedropper.preview} format={colorFormat} />
     </div>
   );
 };
