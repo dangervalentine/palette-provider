@@ -10,7 +10,7 @@ const Palette = ({ colors, format, onDownload, onRemoveColor }) => {
     );
   }
 
-  const tiers = ["dominant", "supporting", "accent"];
+  const tiers = ["dominant", "supporting", "accent", "sampled"];
   const grouped = {};
   for (const tier of tiers) {
     const items = colors.filter((c) => c.tier === tier);
