@@ -77,9 +77,9 @@ export function kMeansClustering(pixels, k, options = {}) {
         newCenters[c] = centers[c];
       } else {
         newCenters[c] = [
-          Math.round(newCenters[c][0] / counts[c]),
-          Math.round(newCenters[c][1] / counts[c]),
-          Math.round(newCenters[c][2] / counts[c]),
+          newCenters[c][0] / counts[c],
+          newCenters[c][1] / counts[c],
+          newCenters[c][2] / counts[c],
         ];
       }
       const shift = Math.sqrt(distanceSquared(centers[c], newCenters[c]));
