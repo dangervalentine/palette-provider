@@ -242,3 +242,46 @@
   --transition-slow: 350ms ease;
   --transition-theme: 300ms ease;
 }
+
+
+/* ================================================================
+   GITHUB ATTRIBUTION
+   ================================================================ */
+
+.github-attribution {
+  position: fixed;
+  bottom: 0.85rem;
+  right: 1rem;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-bg-medium);
+  border-radius: 999px;
+  font-family: system-ui, sans-serif;
+  font-size: 0.76rem;
+  font-weight: 500;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: background 0.15s ease, color 0.15s ease,
+              border-color 0.15s ease;
+}
+
+.github-attribution:hover {
+  background: var(--color-bg-medium);
+  color: var(--color-accent-cyan);
+  border-color: var(--color-accent-cyan);
+}
+
+.github-attribution:focus-visible {
+  outline: 2px solid var(--color-accent-cyan);
+  outline-offset: 2px;
+}
+
+.github-attribution-icon {
+  font-size: 1.1em;
+  line-height: 1;
+}
