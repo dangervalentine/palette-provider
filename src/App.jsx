@@ -1,6 +1,7 @@
 import { useCallback, useState, useRef } from "react";
 import Header from "./Header";
 import Toolbar from "./Toolbar";
+import { GithubAttribution } from "./GithubAttribution";
 import Palette from "./Palette";
 import { extractPalette, formatColor } from "./helpers";
 import { useMediaQuery } from "./hooks/useMediaQuery";
@@ -381,6 +382,7 @@ const App = () => {
         />
       </div>
       <EyedropperPreview preview={eyedropper.preview} format={colorFormat} />
+      <GithubAttribution />
     </div>
   );
 };
