@@ -13,6 +13,16 @@
 </p>
 
 <p align="center">
+  <a href="https://dangervalentine.github.io/palette-provider">
+    <img
+      src="./public/palette-provider.png"
+      width="720"
+      alt="Palette Provider title art: the wordmark beside a photograph overlaid with the sampled pixels feeding its top swatch, a sixteen-colour palette panel, and the OKLAB median-cut tree below."
+    />
+  </a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/react-19-61DAFB?logo=react&logoColor=white" alt="React 19" />
   <img src="https://img.shields.io/badge/vite-6-646CFF?logo=vite&logoColor=white" alt="Vite 6" />
   <img src="https://img.shields.io/badge/color_space-OKLAB-C792EA" alt="OKLAB" />
