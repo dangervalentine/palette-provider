@@ -1,5 +1,5 @@
 import { useState } from "react";
-import logo from "./swatch-finder.svg";
+import logo from "./logo.svg";
 import { getInitialTheme, setTheme } from "./theme";
 
 const Header = () => {

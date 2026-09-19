@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="src/swatch-finder.svg" width="80" alt="Palette Provider" />
+  <img src="./public/favicon.svg" width="80" alt="Palette Provider" />
 </p>
 
 <h1 align="center">Palette Provider</h1>
