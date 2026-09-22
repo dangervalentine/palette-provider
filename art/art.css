@@ -1,0 +1,40 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap");
+
+:root {
+  --bg: #011627;
+  --bg-deep: #010e18;
+  --surface: #0a1e30;
+  --elevated: #132a3e;
+  --border: #2a3f51;
+  --text: #d6deeb;
+  --text-2: #9db2c0;
+  --muted: #7e8e94;
+  --primary: #82aaff;
+  --accent: #c3e88d;
+  --sans: "Outfit", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+html, body { margin: 0; background: #000; }
+
+/* Everything the capture script screenshots lives inside #frame */
+#frame {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(120% 90% at 70% 40%, var(--surface) 0%, var(--bg) 55%, var(--bg-deep) 100%);
+  font-family: var(--sans);
+  color: var(--text);
+}
+#frame svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.label { font: 600 11px/1 var(--mono); letter-spacing: 0.22em; fill: var(--text-2); text-transform: uppercase; }
+.label-muted { font: 600 11px/1 var(--mono); letter-spacing: 0.22em; fill: var(--muted); text-transform: uppercase; }
+.value { font: 400 13px/1 var(--mono); fill: var(--text); }
+.value-strong { font: 600 13px/1 var(--mono); fill: var(--text); }
+.wordmark { font: 800 78px/0.95 var(--sans); fill: #fff; letter-spacing: -0.01em; }
+.title { font: 700 26px/1.1 var(--sans); fill: #fff; }
+.caption { font: 500 15px/1.4 var(--sans); fill: var(--text-2); }
+.panel { fill: rgba(10, 30, 48, 0.85); stroke: var(--border); stroke-width: 1; }
+.hair { stroke: var(--border); stroke-width: 1; fill: none; }
+.link { stroke: var(--primary); stroke-width: 1.5; fill: none; }
+.link-faint { stroke: var(--border); stroke-width: 1; fill: none; }

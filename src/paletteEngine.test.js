@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { extractPalette, stratifiedSample } from "./paletteEngine";
+import { extractPalette, stratifiedSample, samplePoints } from "./paletteEngine";
 import { rgbToOklab, oklabDistance } from "./oklab";
 import {
   makeImageData,
@@ -49,6 +49,25 @@ describe("stratifiedSample", () => {
     expect(stratifiedSample(data, 60, 40, 300)).toEqual(
       stratifiedSample(data, 60, 40, 300)
     );
+  });
+
+  it("samplePoints returns in-bounds coordinates that stratifiedSample reads", () => {
+    const w = 37;
+    const h = 23;
+    const data = new Uint8ClampedArray(w * h * 4).map((_, i) => (i * 7) % 256);
+    const points = samplePoints(w, h, 200);
+    expect(points).toHaveLength(Math.ceil(Math.sqrt(200)) ** 2);
+    for (const { x, y } of points) {
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(x).toBeLessThan(w);
+      expect(y).toBeGreaterThanOrEqual(0);
+      expect(y).toBeLessThan(h);
+    }
+    const viaPoints = points.map(({ x, y }) => {
+      const i = (y * w + x) * 4;
+      return [data[i], data[i + 1], data[i + 2]];
+    });
+    expect(stratifiedSample(data, w, h, 200)).toEqual(viaPoints);
   });
 
   it("samples thin stripes on even coordinates that a center-only grid would miss", () => {

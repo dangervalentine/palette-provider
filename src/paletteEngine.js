@@ -17,30 +17,30 @@ function cellHash(gx, gy, salt) {
   return (h >>> 0) / 4294967296;
 }
 
-// One sample per cell of a square grid, at a hashed offset inside the cell so
-// thin regular structures do not alias with the grid.
-export function stratifiedSample(imageData, width, height, targetCount) {
+// The grid cell positions that stratifiedSample reads, in image pixels. One
+// per cell of a square grid, at a hashed offset inside the cell so thin
+// regular structures do not alias with the grid.
+export function samplePoints(width, height, targetCount) {
   const gridSize = Math.ceil(Math.sqrt(targetCount));
   const cellW = width / gridSize;
   const cellH = height / gridSize;
-  const pixels = [];
-
+  const points = [];
   for (let gy = 0; gy < gridSize; gy++) {
     for (let gx = 0; gx < gridSize; gx++) {
-      const x = Math.min(
-        Math.floor(gx * cellW + cellHash(gx, gy, 1) * cellW),
-        width - 1
-      );
-      const y = Math.min(
-        Math.floor(gy * cellH + cellHash(gx, gy, 2) * cellH),
-        height - 1
-      );
-      const idx = (y * width + x) * 4;
-      pixels.push([imageData[idx], imageData[idx + 1], imageData[idx + 2]]);
+      points.push({
+        x: Math.min(Math.floor(gx * cellW + cellHash(gx, gy, 1) * cellW), width - 1),
+        y: Math.min(Math.floor(gy * cellH + cellHash(gx, gy, 2) * cellH), height - 1),
+      });
     }
   }
+  return points;
+}
 
-  return pixels;
+export function stratifiedSample(imageData, width, height, targetCount) {
+  return samplePoints(width, height, targetCount).map(({ x, y }) => {
+    const idx = (y * width + x) * 4;
+    return [imageData[idx], imageData[idx + 1], imageData[idx + 2]];
+  });
 }
 
 export function extractPalette(
