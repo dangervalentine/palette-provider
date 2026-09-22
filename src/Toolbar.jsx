@@ -2,12 +2,6 @@ import Select from "./Select";
 
 const DETAIL_OPTIONS = ["essential", "balanced", "rich"];
 
-const MODE_OPTIONS = [
-  { value: "faithful", label: "Faithful" },
-  { value: "design", label: "Design" },
-  { value: "complete", label: "Complete" },
-];
-
 const FORMAT_OPTIONS = [
   { value: "hex", label: "HEX" },
   { value: "rgb", label: "RGB" },
@@ -18,8 +12,6 @@ const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 const Toolbar = ({
   hasImage,
-  mode,
-  onModeChange,
   detail,
   onDetailChange,
   colorFormat,
@@ -29,19 +21,6 @@ const Toolbar = ({
 }) => {
   return (
     <div className="toolbar">
-      <div className="toolbar-group">
-        <span className="toolbar-label">Mode</span>
-        <Select
-          label="Mode"
-          value={mode}
-          onValueChange={onModeChange}
-          options={MODE_OPTIONS}
-          disabled={!hasImage}
-        />
-      </div>
-
-      <div className="toolbar-divider" />
-
       <div className="toolbar-group">
         <span className="toolbar-label">Detail</span>
         {isMobile ? (

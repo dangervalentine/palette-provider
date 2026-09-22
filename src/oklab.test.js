@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { rgbToOklab, oklabToRgb, oklabDistance } from "./oklab";
+import { rgbToOklab, oklabToRgb, oklabDistance, oklabToLch } from "./oklab";
 
 describe("rgbToOklab", () => {
   it("converts black to origin", () => {
@@ -84,5 +84,20 @@ describe("oklabDistance", () => {
     const a = [0.6, 0.2, 0.1];
     const b = [0.4, -0.1, -0.3];
     expect(oklabDistance(a, b)).toBeCloseTo(oklabDistance(b, a), 10);
+  });
+});
+
+describe("oklabToLch", () => {
+  it("returns lightness, chroma and a hue angle in [0, 360)", () => {
+    const { L, chroma, hue } = oklabToLch([0.6, 0.1, -0.1]);
+    expect(L).toBe(0.6);
+    expect(chroma).toBeCloseTo(Math.hypot(0.1, -0.1), 6);
+    expect(hue).toBeCloseTo(315, 5);
+  });
+
+  it("gives zero chroma and hue for a gray", () => {
+    const { chroma, hue } = oklabToLch([0.5, 0, 0]);
+    expect(chroma).toBe(0);
+    expect(hue).toBe(0);
   });
 });

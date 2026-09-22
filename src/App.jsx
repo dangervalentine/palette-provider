@@ -32,7 +32,6 @@ const App = () => {
   const isMobile = useMediaQuery("(max-width: 800px)");
   const [fileName, setFileName] = useState("");
   const [image, setImage] = useState("");
-  const [mode, setMode] = useState("faithful");
   const [detail, setDetail] = useState("balanced");
   const [colorFormat, setColorFormat] = useState("hex");
   const [order, setOrder] = useState(readStoredOrder);
@@ -94,39 +93,21 @@ const App = () => {
         lastWidth = w;
         lastHeight = h;
         setSampledColors([]);
-        runExtraction(lastImageData, w, h, { mode, detail });
+        runExtraction(lastImageData, w, h, { detail });
       };
       img.src = imgSrc;
     },
-    [fileName, mode, detail, runExtraction]
-  );
-
-  const reprocess = useCallback(
-    (newMode, newDetail) => {
-      if (!lastImageData) return;
-      setSampledColors([]);
-      runExtraction(lastImageData, lastWidth, lastHeight, {
-        mode: newMode,
-        detail: newDetail,
-      });
-    },
-    [runExtraction]
-  );
-
-  const handleModeChange = useCallback(
-    (newMode) => {
-      setMode(newMode);
-      reprocess(newMode, detail);
-    },
-    [detail, reprocess]
+    [fileName, detail, runExtraction]
   );
 
   const handleDetailChange = useCallback(
     (newDetail) => {
       setDetail(newDetail);
-      reprocess(mode, newDetail);
+      if (!lastImageData) return;
+      setSampledColors([]);
+      runExtraction(lastImageData, lastWidth, lastHeight, { detail: newDetail });
     },
-    [mode, reprocess]
+    [runExtraction]
   );
 
   const onChange = (e) => {
@@ -234,8 +215,6 @@ const App = () => {
       />
       <Toolbar
         hasImage={hasImage}
-        mode={mode}
-        onModeChange={handleModeChange}
         detail={detail}
         onDetailChange={handleDetailChange}
         colorFormat={colorFormat}

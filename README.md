@@ -21,19 +21,13 @@
 
 ---
 
-Palette Provider uses a **hybrid median-cut + k-means clustering** algorithm in the **OKLAB perceptually uniform color space** to extract professional-grade color palettes from images. Colors are automatically classified into dominant, supporting, and accent tiers.
+Palette Provider finds the **color families** in an image as density peaks in the **OKLAB perceptually uniform color space**, so a small but distinct color (down to about 1% of the image) is not lost inside a large one. Families are classified into dominant, supporting, and accent tiers, and each tier is ordered around the hue wheel.
 
 ## Features
 
-**Extraction Modes**
+**Color Families** &mdash; Every perceptually distinct color in the image becomes a family with a faithful color and its true share, whether it covers 60% of the image or 2%.
 
-| Mode | Behavior |
-|------|----------|
-| **Faithful** | Preserves natural color distribution weights from the image |
-| **Design** | Enforces minimum perceptual distance, removing near-duplicates |
-| **Complete** | Captures outlier colors missed by clustering for maximum coverage |
-
-**Detail Levels** &mdash; Essential (4-6 colors), Balanced (8-12), or Rich (14-20)
+**Detail Levels** &mdash; Essential (one shade per family), Balanced (up to two), or Rich (up to three). Detail adds depth within families; it never adds or removes families.
 
 **Eyedropper** &mdash; Long-press on the image to sample individual pixels with a live floating preview. Sampled colors are added to the palette in their own tier.
 
@@ -44,28 +38,26 @@ Palette Provider uses a **hybrid median-cut + k-means clustering** algorithm in 
 ## How It Works
 
 ```
-Image ──► Stratified Grid Sampling (~10k pixels)
+Image ──► Stratified Grid Sampling (~10k pixels, jittered)
               │
               ▼
        RGB → OKLAB Conversion
               │
               ▼
-       Median Cut (initial clusters)
+       Density Map (sparse 3D histogram)
               │
               ▼
-       K-Means Refinement (5-10 iterations)
+       Family Peaks (densest bins ≥ 0.10 apart, lightness weighted)
+       └── every pixel joins its nearest family
               │
               ▼
-       Mode Post-Processing
-       ├── Faithful: keep natural weights
-       ├── Design: merge perceptually similar
-       └── Complete: capture outliers
+       Shades per Family (by lightness, per Detail)
               │
               ▼
-       Tier Classification
+       Tier Classification (per family, shades inherit)
        ├── Dominant  (≥20% each, max 2)
        ├── Supporting (next 4, targeting 85% coverage)
-       └── Accent    (remaining colors)
+       └── Accent    (remaining families)
 ```
 
 All clustering happens in OKLAB space for perceptually accurate distance calculations, then converts back to RGB for display.
@@ -103,8 +95,9 @@ npm run deploy
 src/
 ├── App.jsx                 # Main app — image upload, state, layout
 ├── paletteEngine.js        # Extraction pipeline orchestrator
-├── medianCut.js            # Median cut algorithm with detail configs
-├── kmeans.js               # K-means clustering refinement
+├── densityPeaks.js         # Color families as density peaks in OKLAB
+├── shades.js               # Lightness shades within a family
+├── paletteOrder.js         # Strip order and hue order within tiers
 ├── oklab.js                # RGB ↔ OKLAB conversions
 ├── tierClassifier.js       # Dominant/supporting/accent classification
 ├── colorUtils.js           # HEX, RGB, HSL format conversions
@@ -112,7 +105,7 @@ src/
 ├── theme.js                # Dark/light mode management
 │
 ├── Header.jsx              # Logo, title, theme toggle
-├── Toolbar.jsx             # Mode, detail, format controls
+├── Toolbar.jsx             # Detail and format controls
 ├── Palette.jsx             # Color display grouped by tier
 ├── Swatch.jsx              # Individual color card with copy/remove
 ├── EyedropperPreview.jsx   # Floating preview during sampling

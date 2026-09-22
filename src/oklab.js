@@ -50,3 +50,9 @@ export function oklabDistance(a, b) {
   const db = a[2] - b[2];
   return Math.sqrt(dL * dL + da * da + db * db);
 }
+
+// Polar form of OKLAB. Hue is in degrees, [0, 360).
+export function oklabToLch([L, a, b]) {
+  const hue = (Math.atan2(b, a) * 180) / Math.PI;
+  return { L, chroma: Math.hypot(a, b), hue: (hue + 360) % 360 };
+}

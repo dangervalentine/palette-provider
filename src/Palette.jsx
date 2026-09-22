@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import Swatch from "./Swatch";
 import { formatColor, copyToClipboard } from "./helpers";
-import { ORDERS, orderColors } from "./paletteOrder";
+import { ORDERS, orderColors, orderWithinTier } from "./paletteOrder";
 import { fitChips } from "./fitChips";
 
 const ORDER_LABELS = { prevalence: "Prevalence", hue: "Hue" };
@@ -47,11 +47,12 @@ const Palette = ({
     );
   }
 
+  // Each tier is ordered by family hue so shades of one color sit together
   const tiers = ["dominant", "supporting", "accent", "sampled"];
   const grouped = {};
   for (const tier of tiers) {
     const items = colors.filter((c) => c.tier === tier);
-    if (items.length > 0) grouped[tier] = items;
+    if (items.length > 0) grouped[tier] = orderWithinTier(items);
   }
 
   const buildCopyText = () => {
