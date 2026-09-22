@@ -130,15 +130,88 @@ header {
   opacity: 0.5;
 }
 
-.toolbar-select {
+/* ── Select (Radix) ─────────────────────────────────── */
+
+.select-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  min-width: 84px;
   font-size: var(--font-size-tiny);
   font-family: var(--font-family-body);
+  font-weight: var(--font-weight-semibold);
   background: var(--color-bg-medium);
   color: var(--color-text-primary);
   border: var(--border-thin) solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: var(--spacing-xs) var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
   cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.select-trigger:not([data-disabled]):hover,
+.select-trigger[data-state="open"] {
+  border-color: var(--color-primary-main);
+}
+
+.select-trigger:focus-visible {
+  outline: var(--border-medium) solid var(--color-primary-main);
+  outline-offset: 1px;
+}
+
+.select-trigger[data-disabled] {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.select-icon {
+  display: flex;
+  color: var(--color-text-secondary);
+}
+
+.select-content {
+  min-width: var(--radix-select-trigger-width);
+  background: var(--color-bg-elevated);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-large);
+  overflow: hidden;
+  z-index: var(--z-dropdown);
+}
+
+.select-viewport {
+  padding: var(--spacing-sm);
+}
+
+.select-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+
+.select-item[data-highlighted] {
+  background: var(--color-primary-tint);
+  color: var(--color-primary-light);
+}
+
+.select-item[data-state="checked"] {
+  color: var(--color-primary-main);
+  font-weight: var(--font-weight-semibold);
+}
+
+.select-indicator {
+  display: flex;
 }
 
 /* ── Ghost Button ───────────────────────────────────── */
@@ -151,7 +224,7 @@ header {
   border-radius: var(--radius-md);
   border: var(--border-thin) solid var(--color-primary-dark);
   background: var(--color-primary-tint);
-  color: var(--color-primary-light);
+  color: var(--color-primary-ink);
   font-family: var(--font-family-body);
   font-size: var(--font-size-tiny);
   font-weight: var(--font-weight-semibold);
@@ -168,8 +241,31 @@ header {
 
 .btn-ghost:not(:disabled):hover {
   border-color: var(--color-primary-main);
-  color: var(--color-neutral-white);
+  color: var(--color-primary-ink-strong);
   background: var(--color-primary-tint-strong);
+}
+
+/* ── Primary Button ─────────────────────────────────── */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border: var(--border-thin) solid var(--color-primary-solid);
+  background: var(--color-primary-solid);
+  color: var(--color-on-primary-solid);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-tiny);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-solid-hover);
+  border-color: var(--color-primary-solid-hover);
 }
 
 /* ── Segmented Control ──────────────────────────────── */
@@ -476,33 +572,130 @@ span.bold {
 
 .palette-pane {
   overflow-y: auto;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+}
+
+/* Auto margins center the empty state but, unlike align-items: center,
+   never push overflowing content's top out of scroll reach */
+.palette-pane > * {
+  margin-block: auto;
+}
+
+/* A loaded palette reads top-down from its header, so anchor it to the top */
+.palette-pane > .palette-panel {
+  margin-block: 0 auto;
 }
 
 .palette-panel {
   width: 100%;
   display: flex;
   flex-direction: column;
+  text-align: left;
 }
 
 .palette-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-xl);
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
 }
 
 .palette-header h3 {
   margin: 0;
-  font-size: var(--font-size-body);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-medium);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.01em;
 }
 
 .palette-count {
-  font-size: var(--font-size-tiny);
-  color: var(--color-text-secondary);
   margin-left: var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-elevated);
+  border: var(--border-thin) solid var(--color-border-transparent);
+  font-size: var(--font-size-tiny);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+/* Header, actions and strip stay in view while the chips scroll */
+.palette-top {
+  position: sticky;
+  top: calc(-1 * var(--spacing-xl));
+  z-index: var(--z-elevated);
+  margin-top: calc(-1 * var(--spacing-xl));
+  padding: var(--spacing-xl) 0 var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
+  background: var(--color-bg-surface);
+  border-bottom: var(--border-thin) solid var(--color-border-transparent);
+}
+
+/* Strip order toggle (prevalence / hue) */
+.palette-order {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.palette-order-label {
+  font-size: var(--font-size-tiny);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+/* Every color at a glance. Hovering a color widens it to show its value;
+   clicking jumps to its chip. */
+.palette-strip {
+  display: flex;
+  height: clamp(44px, 6vh, 72px);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-medium);
+}
+
+.palette-strip-segment {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: flex-grow var(--transition-normal);
+}
+
+.palette-strip-value {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-tiny);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+  color: var(--swatch-ink);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.palette-strip-segment:hover,
+.palette-strip-segment:focus-visible {
+  flex-grow: 3;
+}
+
+.palette-strip-segment:hover .palette-strip-value,
+.palette-strip-segment:focus-visible .palette-strip-value {
+  opacity: 0.9;
+}
+
+.palette-strip-segment:focus-visible {
+  outline: var(--border-medium) solid var(--color-primary-main);
+  outline-offset: -2px;
 }
 
 .palette-empty {
@@ -518,9 +711,10 @@ span.bold {
 
 .swatch-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  /* --chip-min is set by fitChips so the whole palette fits the pane on
+     desktop; the fallback applies until it runs */
+  grid-template-columns: repeat(auto-fill, minmax(var(--chip-min, clamp(100px, 7vw, 160px)), 1fr));
   gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-xl);
 }
 
 .swatch-card {
@@ -574,25 +768,30 @@ span.bold {
 
 .swatch-label {
   background: var(--color-bg-elevated);
-  padding: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-sm);
   text-align: center;
 }
 
 .swatch-value {
+  display: block;
   font-size: var(--font-size-tiny);
   font-family: var(--font-family-mono);
   font-weight: var(--font-weight-bold);
+  /* RGB/HSL values wrap on small chips; keep wrapped lines tight */
+  line-height: 1.25;
   color: var(--color-text-primary);
 }
 
 /* ── Tier Groups ───────────────────────────────────── */
 
 .tier-group {
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
 }
 
 .tier-label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
   font-size: var(--font-size-tiny);
   font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
@@ -601,11 +800,21 @@ span.bold {
   margin-bottom: var(--spacing-md);
 }
 
+.tier-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
 .palette-actions {
   display: flex;
   gap: var(--spacing-md);
-  padding-top: var(--spacing-lg);
-  border-top: var(--border-thin) solid var(--color-border);
+}
+
+.palette-header .palette-actions .btn-ghost,
+.palette-header .palette-actions .btn-primary {
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: var(--font-size-small);
 }
 
 /* ── Eyedropper Preview ───────────────────────────────── */
@@ -649,19 +858,48 @@ span.bold {
 /* ── Mobile ─────────────────────────────────────────── */
 
 @media (max-width: 800px) {
-  html { overflow: scroll; overflow-x: hidden; }
   ::-webkit-scrollbar { width: 0; background: transparent; }
-  header { justify-content: space-between; }
+
+  body,
+  .app-shell {
+    height: 100dvh;
+  }
+
+  /* Reserve a band at the bottom so the fixed GitHub badge never covers content */
+  .app-shell {
+    padding-bottom: calc(0.85rem + 2.25rem);
+  }
+
+  header {
+    justify-content: space-between;
+    padding: var(--spacing-md) var(--spacing-xl);
+  }
   .header-text p { font-size: var(--font-size-small); }
   .header-text { margin: 0 0 0 var(--spacing-md); }
   .title { font-size: var(--font-size-large); }
+  .header-upload {
+    margin-left: auto;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  .theme-toggle { margin-left: var(--spacing-lg); }
 
   .toolbar {
     gap: var(--spacing-md);
-    flex-wrap: wrap;
-    padding: var(--spacing-sm) var(--spacing-md);
+    flex-wrap: nowrap;
+    padding: var(--spacing-md);
   }
-  .toolbar-label { display: none; }
+  .toolbar-label,
+  .toolbar-divider { display: none; }
+  .toolbar-group {
+    flex: 1;
+    min-width: 0;
+  }
+  .select-trigger {
+    width: 100%;
+    min-width: 0;
+    padding: var(--spacing-md);
+    font-size: var(--font-size-small);
+  }
 
   .helper-dot { display: none; }
   .helper-bar { padding: var(--spacing-sm) var(--spacing-md); }
@@ -669,34 +907,149 @@ span.bold {
   .container {
     flex: 1;
     min-height: 0;
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
   }
 
   .logo { order: 1; }
   .photo-container { height: 100%; width: 100%; }
   .photo { width: calc(100% - 1em); height: calc(100% - 1em); margin: 0; }
 
+  .select-item {
+    padding: var(--spacing-lg) var(--spacing-md);
+    font-size: var(--font-size-body);
+  }
+
+  /* Image pinned on top, palette fills the rest; only the chips scroll */
   .split-view {
     flex-direction: column;
-    padding: var(--spacing-md);
-    overflow-y: auto;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    overflow: hidden;
   }
 
   .split-pane {
     flex: none;
+    padding: var(--spacing-md);
   }
+
+  .pane-label { display: none; }
 
   .palette-pane {
     flex: 1;
-    min-height: 200px;
+    min-height: 0;
+    overflow: hidden;
+    align-items: stretch;
+  }
+
+  .palette-panel {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .palette-top {
+    position: static;
+    flex-shrink: 0;
+    margin: 0 0 var(--spacing-md);
+    padding: 0;
+    border-bottom: none;
+    background: none;
+  }
+
+  .palette-strip { height: 36px; }
+
+  .palette-edit {
+    display: inline-flex;
+    padding: var(--spacing-xs) var(--spacing-lg);
+  }
+
+  .btn-ghost.palette-edit.active {
+    background: var(--color-primary-main);
+    border-color: var(--color-primary-main);
+    color: var(--color-text-inverse);
+  }
+
+  .palette-tiers {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .palette-actions {
+    flex-shrink: 0;
+    padding-top: var(--spacing-md);
+    border-top: var(--border-thin) solid var(--color-border);
+  }
+
+  .palette-actions .btn-ghost,
+  .palette-actions .btn-primary {
+    flex: 1;
+    justify-content: center;
+    padding: var(--spacing-md);
   }
 
   .image-file {
-    max-height: 50vh;
+    max-height: 30dvh;
   }
 
-  .image-remove,
-  .swatch-card .swatch-remove {
+  .image-remove {
     opacity: 1;
   }
+
+  /* Remove buttons only appear in edit mode */
+  .swatch-card .swatch-remove {
+    display: none;
+    opacity: 1;
+  }
+
+  .palette-panel.editing .swatch-remove {
+    display: flex;
+  }
+
+  /* Dense chips: hex overlaid on the color, no card chrome */
+  .swatch-grid {
+    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .swatch-card {
+    position: relative;
+    border: var(--border-hairline) solid var(--color-border-transparent);
+    border-radius: var(--radius-sm);
+    box-shadow: none;
+  }
+
+  .swatch-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .swatch-color {
+    aspect-ratio: 1;
+    border-bottom: none;
+  }
+
+  .swatch-label {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: var(--spacing-xs);
+    background: transparent;
+    pointer-events: none;
+  }
+
+  .swatch-value {
+    display: block;
+    font-size: 9px;
+    line-height: 1.2;
+    color: var(--swatch-ink);
+    opacity: 0.85;
+  }
+
+  .swatch-remove {
+    top: var(--spacing-xs);
+    right: var(--spacing-xs);
+  }
+
+  .tier-group { margin-bottom: var(--spacing-md); }
+  .tier-label { margin-bottom: var(--spacing-sm); }
 }

@@ -7,6 +7,7 @@ import { extractPalette, formatColor } from "./helpers";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import EyedropperPreview from "./EyedropperPreview";
 import { useEyedropper } from "./hooks/useEyedropper";
+import { ORDERS, orderColors } from "./paletteOrder";
 
 import "./App.css";
 import upload from "./upload.svg";
@@ -16,6 +17,17 @@ let lastImageData;
 let lastWidth;
 let lastHeight;
 
+const ORDER_STORAGE_KEY = "palette-provider-order";
+
+const readStoredOrder = () => {
+  try {
+    const stored = localStorage.getItem(ORDER_STORAGE_KEY);
+    return ORDERS.includes(stored) ? stored : "prevalence";
+  } catch {
+    return "prevalence";
+  }
+};
+
 const App = () => {
   const isMobile = useMediaQuery("(max-width: 800px)");
   const [fileName, setFileName] = useState("");
@@ -23,6 +35,7 @@ const App = () => {
   const [mode, setMode] = useState("faithful");
   const [detail, setDetail] = useState("balanced");
   const [colorFormat, setColorFormat] = useState("hex");
+  const [order, setOrder] = useState(readStoredOrder);
   const [colors, setColors] = useState([]);
   const [hiddenKeys, setHiddenKeys] = useState(new Set());
   const photoContainer = useRef(null);
@@ -30,17 +43,30 @@ const App = () => {
   const inputRef = useRef(null);
 
   const [sampledColors, setSampledColors] = useState([]);
+  const sampleCounter = useRef(0);
 
-  const handleSampleColor = useCallback((sampledColor) => {
-    setSampledColors((prev) => [...prev, sampledColor]);
-  }, []);
+  // Samples matching a color already shown are ignored. A hidden color can be
+  // sampled back in, so the RGB string alone still isn't a unique key.
+  const handleSampleColor = useCallback(
+    (sampledColor) => {
+      const rgb = sampledColor.color.join(",");
+      const key = `sampled-${sampleCounter.current++}`;
+      setSampledColors((prev) => {
+        const alreadyShown = [...colors, ...prev].some(
+          (c) => !hiddenKeys.has(c.key) && c.color.join(",") === rgb
+        );
+        return alreadyShown ? prev : [...prev, { ...sampledColor, key }];
+      });
+    },
+    [colors, hiddenKeys]
+  );
 
   const eyedropper = useEyedropper(canvasRef, handleSampleColor);
 
   const runExtraction = useCallback(
     (imageData, width, height, opts) => {
       const result = extractPalette(imageData, width, height, opts);
-      setColors(result);
+      setColors(result.map((c, i) => ({ ...c, key: `extracted-${i}` })));
       setHiddenKeys(new Set());
     },
     []
@@ -125,34 +151,28 @@ const App = () => {
     photoContainer.current.classList.remove("drag-over");
   };
 
-  const handleRemoveColor = useCallback((color) => {
-    setHiddenKeys((prev) => new Set(prev).add(color.join(",")));
+  const handleRemoveColor = useCallback((key) => {
+    setHiddenKeys((prev) => new Set(prev).add(key));
   }, []);
 
-  const visibleColors = [
-    ...colors.filter((c) => !hiddenKeys.has(c.color.join(","))),
-    ...sampledColors.filter((c) => !hiddenKeys.has(c.color.join(","))),
-  ];
+  const visibleColors = [...colors, ...sampledColors].filter(
+    (c) => !hiddenKeys.has(c.key)
+  );
+
+  const handleOrderChange = useCallback((next) => {
+    setOrder(next);
+    try {
+      localStorage.setItem(ORDER_STORAGE_KEY, next);
+    } catch {
+      // Storage unavailable; the choice just won't be remembered
+    }
+  }, []);
 
   const downloadPalette = useCallback(() => {
     if (visibleColors.length === 0) return;
 
-    const getHue = (r, g, b) => {
-      r /= 255; g /= 255; b /= 255;
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      if (max === min) return 0;
-      const d = max - min;
-      let h;
-      if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-      else if (max === g) h = ((b - r) / d + 2) / 6;
-      else h = ((r - g) / d + 4) / 6;
-      return h;
-    };
-
-    const sorted = [...visibleColors].sort(
-      (a, b) => getHue(...a.color) - getHue(...b.color)
-    );
+    // The PNG matches the order shown in the palette strip
+    const sorted = orderColors(visibleColors, order);
 
     const canvas = document.createElement("canvas");
     canvas.width = 1200;
@@ -181,7 +201,7 @@ const App = () => {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  }, [visibleColors, colorFormat, fileName]);
+  }, [visibleColors, order, colorFormat, fileName]);
 
   const hasImage = fileName !== "";
 
@@ -209,7 +229,9 @@ const App = () => {
 
   return (
     <div className="app-shell">
-      <Header />
+      <Header
+        onUpload={isMobile ? () => inputRef.current?.click() : undefined}
+      />
       <Toolbar
         hasImage={hasImage}
         mode={mode}
@@ -259,6 +281,9 @@ const App = () => {
                     format={colorFormat}
                     onDownload={downloadPalette}
                     onRemoveColor={handleRemoveColor}
+                    isMobile={isMobile}
+                    order={order}
+                    onOrderChange={handleOrderChange}
                   />
                 </div>
               </div>
@@ -309,13 +334,17 @@ const App = () => {
                 )}
               </div>
               <div className="split-pane palette-pane">
-                <div className="pane-label">Palette</div>
+                {/* Once loaded, the palette's own header labels the pane */}
+                {!hasImage && <div className="pane-label">Palette</div>}
                 {hasImage ? (
                   <Palette
                     colors={visibleColors}
                     format={colorFormat}
                     onDownload={downloadPalette}
                     onRemoveColor={handleRemoveColor}
+                    isMobile={isMobile}
+                    order={order}
+                    onOrderChange={handleOrderChange}
                   />
                 ) : (
                   <div className="empty-preview">

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { formatColor, copyToClipboard } from "./helpers";
 
-const Swatch = ({ color, format, onRemove }) => {
+const Swatch = ({ swatchKey, color, okL, format, onRemove }) => {
   const [copied, setCopied] = useState(false);
   const formatted = formatColor(color, format);
   const bgColor = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+  const ink = okL > 0.5 ? "#000000" : "#FFFFFF";
 
   const onClick = () => {
     copyToClipboard(formatted);
@@ -14,11 +15,16 @@ const Swatch = ({ color, format, onRemove }) => {
 
   const handleRemove = (e) => {
     e.stopPropagation();
-    onRemove(color);
+    onRemove(swatchKey);
   };
 
   return (
-    <div className="swatch-card" onClick={onClick}>
+    <div
+      className="swatch-card"
+      data-swatch-key={swatchKey}
+      onClick={onClick}
+      style={{ "--swatch-ink": ink }}
+    >
       <div className="swatch-color" style={{ backgroundColor: bgColor }}>
         {onRemove && (
           <button className="swatch-remove" onClick={handleRemove}>

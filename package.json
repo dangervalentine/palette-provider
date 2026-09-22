@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@radix-ui/react-select": "^2.3.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

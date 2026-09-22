@@ -72,6 +72,9 @@ export function useEyedropper(canvasRef, onSample) {
   const handlePointerUp = useCallback(
     (e) => {
       clearTimeout(longPressTimer.current);
+      // Stop the browser from following touchend with emulated mouse events,
+      // which would run this handler again and sample the color twice.
+      if (e.changedTouches && e.cancelable) e.preventDefault();
       const clientX = e.changedTouches
         ? e.changedTouches[0].clientX
         : e.clientX;

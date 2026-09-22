@@ -14,10 +14,18 @@
 
 :root,
 :root[data-theme="dark"] {
+  /* Native scrollbars and form controls follow the theme */
+  color-scheme: dark;
+
   /* --- Primary --- */
   --color-primary-light: #AFC6FF;
   --color-primary-main: #82AAFF;
   --color-primary-dark: #4976A1;
+  --color-primary-ink: #AFC6FF;
+  --color-primary-ink-strong: #FFFFFF;
+  --color-primary-solid: #82AAFF;
+  --color-primary-solid-hover: #AFC6FF;
+  --color-on-primary-solid: #011627;
 
   /* --- Secondary --- */
   --color-secondary-light: #A3B7C7;
@@ -92,10 +100,17 @@
    ================================================================ */
 
 :root[data-theme="light"] {
+  color-scheme: light;
+
   /* --- Primary --- */
   --color-primary-light: #6FBEF6;
   --color-primary-main: #4876D6;
   --color-primary-dark: #288ED7;
+  --color-primary-ink: #264B91;
+  --color-primary-ink-strong: #23468A;
+  --color-primary-solid: #2F5BB8;
+  --color-primary-solid-hover: #264B91;
+  --color-on-primary-solid: #FFFFFF;
 
   /* --- Secondary --- */
   --color-secondary-light: #A9C4D8;
