@@ -1,22 +1,34 @@
-import { el, text, circle, path, swatch, ready, stepHeader } from "./svg.js";
+import { el, text, circle, path, swatch, ready, group } from "./svg.js";
 import { loadSource, analyze } from "./data.js";
 import { oklabToRgb } from "../src/oklab.js";
 
 const W = 1200, H = 480;
 
+// Same look as stepHeader in svg.js, with caption lines spaced for the larger
+// step-page type.
+function header(num, title, captionLines, x = 48, y = 72) {
+  const g = group();
+  g.append(text(x, y, num, { class: "label", fill: "#82aaff", style: "font-size:18px" }));
+  g.append(text(x, y + 40, title, { class: "title" }));
+  captionLines.forEach((ln, i) => g.append(text(x, y + 76 + i * 30, ln, { class: "caption" })));
+  return g;
+}
+
 async function main() {
   const source = await loadSource();
   const a = analyze(source);
+  document.getElementById("frame").classList.add("step");
   const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H });
-  svg.append(stepHeader("04 / TIERS", "Rank and order by hue", [
+  svg.append(header("04 / TIERS", "Rank and order by hue", [
     "Families are ranked into dominant,",
-    "supporting and accent tiers by their",
-    "share. Inside each tier the chips run",
-    "around the hue wheel, grays last, so",
-    "shades of one color sit together.",
+    "supporting and accent tiers by",
+    "their share. Inside each tier the",
+    "chips run around the hue wheel,",
+    "grays last, so shades of one color",
+    "sit together.",
   ]));
 
-  const cx = 560, cy = 240, r = 90;
+  const cx = 590, cy = 240, r = 90;
   const segs = 72;
   for (let i = 0; i < segs; i++) {
     const a0 = (i / segs) * 2 * Math.PI, a1 = ((i + 1) / segs) * 2 * Math.PI;
@@ -25,8 +37,8 @@ async function main() {
     const d = `M ${cx + (r - 10) * Math.cos(a0)} ${cy + (r - 10) * Math.sin(a0)} A ${r - 10} ${r - 10} 0 0 1 ${cx + (r - 10) * Math.cos(a1)} ${cy + (r - 10) * Math.sin(a1)} L ${cx + (r + 10) * Math.cos(a1)} ${cy + (r + 10) * Math.sin(a1)} A ${r + 10} ${r + 10} 0 0 0 ${cx + (r + 10) * Math.cos(a0)} ${cy + (r + 10) * Math.sin(a0)} Z`;
     svg.append(path(d, { fill: `rgb(${rgb.join(",")})`, opacity: 0.55 }));
   }
-  svg.append(text(cx + r + 16, cy + 4, "0°", { class: "label-muted", style: "font-size:9px" }));
-  svg.append(text(cx - r - 16, cy + 4, "180°", { class: "label-muted", "text-anchor": "end", style: "font-size:9px" }));
+  svg.append(text(cx + r + 16, cy + 4, "0°", { class: "label-muted", style: "font-size:13px" }));
+  svg.append(text(cx - r - 16, cy + 4, "180°", { class: "label-muted", "text-anchor": "end", style: "font-size:13px" }));
   svg.append(text(cx, cy + r + 34, "OKLCH HUE WHEEL", { class: "label", "text-anchor": "middle" }));
   // Smallest first so the largest family's dot ends up on top.
   [...a.families]
@@ -38,15 +50,15 @@ async function main() {
       svg.append(circle(px, py, 5 + Math.min(7, f.share * 20), { fill: `rgb(${f.rgb.join(",")})`, stroke: "#fff", "stroke-width": 1.5 }));
     });
 
-  const tx = 760, ty = 100;
+  const tx = 760, ty = 104;
   ["dominant", "supporting", "accent"].forEach((tier, ti) => {
-    const yy = ty + ti * 110;
+    const yy = ty + ti * 120;
     const items = a.byTier[tier] ?? [];
     svg.append(text(tx, yy, `${tier.toUpperCase()}  ${items.length}`, { class: "label" }));
     items.forEach((e, i) => {
-      const sx = tx + i * 50;
-      svg.append(swatch(sx, yy + 12, 44, 28, e.color));
-      svg.append(text(sx + 22, yy + 54, e.hex, { class: "label-muted", "text-anchor": "middle", style: "font-size:8px;letter-spacing:0.04em" }));
+      const sx = tx + i * 64;
+      svg.append(swatch(sx, yy + 14, 56, 32, e.color));
+      svg.append(text(sx + 28, yy + 64, e.hex, { class: "label-muted", "text-anchor": "middle", style: "font-size:13px;letter-spacing:0" }));
     });
   });
 

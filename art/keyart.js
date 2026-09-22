@@ -51,9 +51,9 @@ function stats(a, x, y) {
   ];
   const g = group();
   rows.forEach(([k, v], i) => {
-    const yy = y + i * 40;
+    const yy = y + i * 44;
     g.append(text(x, yy, k, { class: "label-muted" }));
-    g.append(text(x, yy + 18, v, { class: "value-strong", style: "font-size:15px" }));
+    g.append(text(x, yy + 20, v, { class: "value-strong", style: "font-size:18px" }));
   });
   return g;
 }
@@ -65,18 +65,19 @@ function palettePanel(a, x, y, w, h) {
   const counts = ["dominant", "supporting", "accent"]
     .map((t) => `${(a.byTier[t] ?? []).length} ${t.slice(0, 3)}`)
     .join(" · ");
-  g.append(text(x + w - 16, y + 26, counts.toUpperCase(), { class: "label-muted", "text-anchor": "end", style: "font-size:9px" }));
+  // Tier counts sit along the bottom so they do not crowd the PALETTE label.
+  g.append(text(x + 16, y + h - 16, counts.toUpperCase(), { class: "label-muted", style: "font-size:12px;letter-spacing:0.12em" }));
   const rows = ["dominant", "supporting", "accent"].flatMap((t) => a.byTier[t] ?? []);
   const perCol = Math.ceil(rows.length / 2);
   rows.forEach((e, i) => {
     const col = Math.floor(i / perCol);
     const row = i % perCol;
-    const rx = x + 14 + col * (w / 2);
-    const ry = y + 46 + row * 20;
-    if (i === 0) g.append(rect(rx - 6, ry - 13, w / 2 - 12, 19, { rx: 4, fill: "rgba(130,170,255,0.14)" }));
-    g.append(circle(rx + 5, ry - 4, 5, { fill: `rgb(${e.color.join(",")})`, stroke: "rgba(255,255,255,0.15)" }));
-    g.append(text(rx + 18, ry, e.hex, { class: "value", style: "font-size:11px" }));
-    g.append(text(rx + w / 2 - 22, ry, pct(e.percentage / 100), { class: "value", "text-anchor": "end", style: "font-size:10px", fill: i === 0 ? PRIMARY : "#9db2c0" }));
+    const rx = x + 12 + col * (w / 2);
+    const ry = y + 50 + row * 22;
+    if (i === 0) g.append(rect(rx - 6, ry - 15, w / 2 - 8, 21, { rx: 4, fill: "rgba(130,170,255,0.14)" }));
+    g.append(circle(rx + 5, ry - 5, 5, { fill: `rgb(${e.color.join(",")})`, stroke: "rgba(255,255,255,0.15)" }));
+    g.append(text(rx + 16, ry, e.hex, { class: "value", style: "font-size:13px" }));
+    g.append(text(rx + w / 2 - 22, ry, pct(e.percentage / 100), { class: "value", "text-anchor": "end", style: "font-size:13px", fill: i === 0 ? PRIMARY : "#9db2c0" }));
   });
   return g;
 }
@@ -152,13 +153,13 @@ function familyDiagram(a, x0, x1, yTop) {
   const d = `M ${wheel0} ${ridgeY} ` + pts.map(([px, py]) => `L ${px.toFixed(1)} ${py.toFixed(1)}`).join(" ") + ` L ${wheel1} ${ridgeY} Z`;
   g.append(path(d, { fill: "rgba(130,170,255,0.10)", stroke: "#4976a1", "stroke-width": 1.25, "stroke-linejoin": "round" }));
   g.append(line(wheel0, ridgeY, wheel1, ridgeY, { class: "hair" }));
-  g.append(text(wheel0, ridgeY + 14, "0°", { class: "label-muted", style: "font-size:9px" }));
-  g.append(text(wheel1, ridgeY + 14, "360°", { class: "label-muted", "text-anchor": "end", style: "font-size:9px" }));
+  g.append(text(wheel0, ridgeY + 14, "0°", { class: "label-muted", style: "font-size:12px" }));
+  g.append(text(wheel1, ridgeY + 14, "360°", { class: "label-muted", "text-anchor": "end", style: "font-size:12px" }));
 
   // Neutral strip right of 360°.
   const neutralX0 = x1 - 60;
   g.append(line(neutralX0 - 12, ridgeY, x1 - 60 + 30 + 12, ridgeY, { class: "hair" }));
-  g.append(text(neutralX0 + 15, ridgeY + 14, "GRAY", { class: "label-muted", "text-anchor": "middle", style: "font-size:9px" }));
+  g.append(text(neutralX0 + 15, ridgeY + 14, "GRAY", { class: "label-muted", "text-anchor": "middle", style: "font-size:12px" }));
 
   // Peak position (true hue) and ideal swatch x for every family.
   let neutralK = 0;
@@ -207,7 +208,7 @@ function familyDiagram(a, x0, x1, yTop) {
     best.perm.forEach((p, i) => { p.cx = slots[i]; });
   }
 
-  const shadeY = famY + 46;
+  const shadeY = famY + 50;
   const connectors = group();
   const peaks = group();
   const swatches = group();
@@ -228,9 +229,9 @@ function familyDiagram(a, x0, x1, yTop) {
 
     swatches.append(swatch(p.cx - SWATCH_W / 2, famY, SWATCH_W, SWATCH_H, p.f.rgb,
       top ? { stroke: PRIMARY, "stroke-width": 1.5 } : {}));
-    swatches.append(text(p.cx, famY + SWATCH_H + 11, pct(p.f.share), {
+    swatches.append(text(p.cx, famY + SWATCH_H + 14, pct(p.f.share), {
       class: "value", "text-anchor": "middle",
-      style: "font-size:8px", fill: top ? PRIMARY : "#9db2c0",
+      style: "font-size:12px", fill: top ? PRIMARY : "#9db2c0",
     }));
 
     const fanW = shades.length * SWATCH_W + (shades.length - 1) * SHADE_GAP;
@@ -239,7 +240,7 @@ function familyDiagram(a, x0, x1, yTop) {
       const sx = p.cx - fanW / 2 + k * (SWATCH_W + SHADE_GAP);
       const scx = sx + SWATCH_W / 2;
       const attrs = top ? { class: "link" } : { class: "link-faint", stroke: "#3b5670" };
-      connectors.append(path(`M ${p.cx} ${famY + SWATCH_H + 15} V ${busY} H ${scx} V ${shadeY}`, attrs));
+      connectors.append(path(`M ${p.cx} ${famY + SWATCH_H + 18} V ${busY} H ${scx} V ${shadeY}`, attrs));
       swatches.append(swatch(sx, shadeY, SWATCH_W, SWATCH_H, e.color,
         top && k === 0 ? { stroke: PRIMARY, "stroke-width": 2 } : {}));
     });
@@ -253,16 +254,17 @@ async function main() {
   const source = await loadSource();
   const a = analyze(source, "balanced");
   const frame = document.getElementById("frame");
+  frame.classList.add("keyart");
   const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H });
 
   svg.append(text(96, 300, "PALETTE", { class: "wordmark" }));
   svg.append(text(96, 375, "PROVIDER", { class: "wordmark" }));
   svg.append(rect(96, 412, 100, 4, { fill: "#c3e88d", rx: 2 }));
-  svg.append(text(96, 470, "OKLAB COLOR FAMILIES", { class: "label", style: "font-size:15px;letter-spacing:0.3em" }));
+  svg.append(text(96, 470, "OKLAB COLOR FAMILIES", { class: "label", style: "font-size:17px;letter-spacing:0.3em" }));
 
   svg.append(photoCard(a, source, 540, 100, 230, 306));
-  svg.append(stats(a, 800, 175));
-  svg.append(palettePanel(a, 914, 104, 284, 180));
+  svg.append(stats(a, 792, 150));
+  svg.append(palettePanel(a, 912, 104, 286, 200));
   svg.append(familyDiagram(a, 540, 1180, 466));
 
   frame.append(svg);

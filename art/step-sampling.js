@@ -1,13 +1,24 @@
-import { el, text, rect, circle, line, ready, stepHeader } from "./svg.js";
+import { el, text, rect, circle, line, ready, group } from "./svg.js";
 import { loadSource, analyze } from "./data.js";
 
 const W = 1200, H = 480;
 
+// Same look as stepHeader in svg.js, with caption lines spaced for the larger
+// step-page type.
+function header(num, title, captionLines, x = 48, y = 72) {
+  const g = group();
+  g.append(text(x, y, num, { class: "label", fill: "#82aaff", style: "font-size:18px" }));
+  g.append(text(x, y + 40, title, { class: "title" }));
+  captionLines.forEach((ln, i) => g.append(text(x, y + 76 + i * 30, ln, { class: "caption" })));
+  return g;
+}
+
 async function main() {
   const source = await loadSource();
   const a = analyze(source);
+  document.getElementById("frame").classList.add("step");
   const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H });
-  svg.append(stepHeader("01 / SAMPLE", "Sample the image", [
+  svg.append(header("01 / SAMPLE", "Sample the image", [
     "10,000 points on a square grid,",
     "each nudged inside its cell so",
     "thin stripes never line up with",
@@ -43,7 +54,8 @@ async function main() {
     svg.append(circle(sx, sy, 3.5, { fill: `rgb(${c.join(",")})`, stroke: "#fff", "stroke-width": 1, "clip-path": "url(#c)" }));
   }
   svg.append(rect(px, py, ps, ps, { rx: 6, class: "hair", stroke: "#82aaff", "stroke-opacity": 0.5 }));
-  svg.append(text(px, py + ps + 22, "100 × 100 CELLS · ONE SAMPLE EACH", { class: "label" }));
+  svg.append(text(px, py + ps + 28, "100 × 100 CELLS", { class: "label" }));
+  svg.append(text(px, py + ps + 50, "ONE SAMPLE EACH", { class: "label" }));
 
   // Zoom inset of one cell
   const zx = 880, zy = 110, zs = 200;
@@ -53,11 +65,16 @@ async function main() {
   svg.append(rect(zx, zy, zs, zs, { class: "hair", "stroke-dasharray": "6 5", stroke: "#82aaff" }));
   svg.append(line(zx + zs / 2 - 8, zy + zs / 2, zx + zs / 2 + 8, zy + zs / 2, { class: "hair", stroke: "#7e8e94" }));
   svg.append(line(zx + zs / 2, zy + zs / 2 - 8, zx + zs / 2, zy + zs / 2 + 8, { class: "hair", stroke: "#7e8e94" }));
-  svg.append(text(zx + zs / 2 + 12, zy + zs / 2 - 6, "CELL CENTER", { class: "label-muted", style: "font-size:9px" }));
   const dx = zx + fx * zs, dy = zy + fy * zs;
+  // Keep both labels inside the dashed square: CELL CENTER sits under the
+  // crosshair, or above it when the sample dot is below the center.
+  const centerLabelY = dy > zy + zs / 2 ? zy + zs / 2 - 16 : zy + zs / 2 + 28;
+  svg.append(text(zx + zs / 2, centerLabelY, "CELL CENTER", { class: "label-muted", "text-anchor": "middle", style: "font-size:13px;letter-spacing:0.12em" }));
   svg.append(circle(dx, dy, 6, { fill: "#c3e88d" }));
-  svg.append(text(dx + 12, dy + 4, "SAMPLE", { class: "label", fill: "#c3e88d", style: "font-size:9px" }));
-  svg.append(text(zx, zy + zs + 22, "ONE CELL · HASHED OFFSET", { class: "label" }));
+  const sampleRight = dx + 14 + 56 < zx + zs - 8;
+  svg.append(text(sampleRight ? dx + 14 : dx - 14, dy + 5, "SAMPLE", { class: "label", fill: "#c3e88d", "text-anchor": sampleRight ? "start" : "end", style: "font-size:13px;letter-spacing:0.12em" }));
+  svg.append(text(zx, zy + zs + 28, "ONE CELL", { class: "label" }));
+  svg.append(text(zx, zy + zs + 50, "HASHED OFFSET", { class: "label" }));
 
   document.getElementById("frame").append(svg);
   await ready();

@@ -38,3 +38,13 @@ html, body { margin: 0; background: #000; }
 .hair { stroke: var(--border); stroke-width: 1; fill: none; }
 .link { stroke: var(--primary); stroke-width: 1.5; fill: none; }
 .link-faint { stroke: var(--border); stroke-width: 1; fill: none; }
+
+/* Step pages are shown at about 75% on GitHub; sizes here keep text legible there. */
+#frame.step .label, #frame.step .label-muted { font-size: 16px; letter-spacing: 0.18em; }
+#frame.step .value, #frame.step .value-strong { font-size: 18px; }
+#frame.step .title { font-size: 38px; }
+#frame.step .caption { font-size: 22px; }
+
+/* Key art is shown at about 70% on GitHub. */
+#frame.keyart .label, #frame.keyart .label-muted { font-size: 14px; letter-spacing: 0.2em; }
+#frame.keyart .value, #frame.keyart .value-strong { font-size: 16px; }

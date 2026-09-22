@@ -16,7 +16,7 @@
   <a href="https://dangervalentine.github.io/palette-provider">
     <img
       src="./public/palette-provider.png"
-      width="720"
+      width="100%"
       alt="Palette Provider title art: the wordmark beside a photograph overlaid with the samples feeding its largest color family, a palette panel grouped by tier, and a hue-density ridge below with a peak for every family fanning into its shades."
     />
   </a>
@@ -48,16 +48,16 @@ Palette Provider finds the **color families** in an image as density peaks in th
 ## How It Works
 
 <p align="center">
-  <img src="./public/art/step-1-sampling.png" width="720" alt="Step 1: the image is sampled at 10,000 grid points, each nudged inside its cell." />
+  <img src="./public/art/step-1-sampling.png" width="100%" alt="Step 1: the image is sampled at 10,000 grid points, each nudged inside its cell." />
 </p>
 <p align="center">
-  <img src="./public/art/step-2-density.png" width="720" alt="Step 2: samples are binned in the OKLAB a/b plane and the densest bins at least 0.10 apart become family peaks." />
+  <img src="./public/art/step-2-density.png" width="100%" alt="Step 2: samples are binned in the OKLAB a/b plane and the densest bins at least 0.10 apart become family peaks." />
 </p>
 <p align="center">
-  <img src="./public/art/step-3-families.png" width="720" alt="Step 3: each family splits into one, two, or three lightness shades depending on Detail." />
+  <img src="./public/art/step-3-families.png" width="100%" alt="Step 3: each family splits into one, two, or three lightness shades depending on Detail." />
 </p>
 <p align="center">
-  <img src="./public/art/step-4-tiers.png" width="720" alt="Step 4: families are ranked into tiers and each tier is ordered around the hue wheel." />
+  <img src="./public/art/step-4-tiers.png" width="100%" alt="Step 4: families are ranked into tiers and each tier is ordered around the hue wheel." />
 </p>
 
 ```
