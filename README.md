@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="src/swatch-finder.svg" width="80" alt="Palette Provider" />
+  <img src="./public/favicon.svg" width="80" alt="Palette Provider" />
 </p>
 
 <h1 align="center">Palette Provider</h1>
@@ -10,6 +10,16 @@
 
 <p align="center">
   <a href="https://dangervalentine.github.io/palette-provider">Live Demo</a>
+</p>
+
+<p align="center">
+  <a href="https://dangervalentine.github.io/palette-provider">
+    <img
+      src="./public/palette-provider.png"
+      width="720"
+      alt="Palette Provider title art: the wordmark beside a photograph overlaid with the sampled pixels feeding its top swatch, a sixteen-colour palette panel, and the OKLAB median-cut tree below."
+    />
+  </a>
 </p>
 
 <p align="center">
