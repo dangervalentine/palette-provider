@@ -96,6 +96,14 @@ const ResultPanel = ({
   // only the active one.
   const panels = isMobile ? VIEWS.filter((v) => v.id === view) : VIEWS;
 
+  // A newly shown view starts scrolled to the top, so the image shrink that
+  // the last view's scroll left behind must go too, or the new view's content
+  // sits pushed down under empty space
+  const panelRef = useRef(null);
+  useLayoutEffect(() => {
+    panelRef.current?.closest(".split-view")?.style.removeProperty("--image-shrink");
+  }, [view]);
+
   // Writes the shrink straight to a CSS variable rather than React state, so
   // scrolling never re-renders the panel.
   const onViewScroll = (e) => {
@@ -107,7 +115,7 @@ const ResultPanel = ({
   };
 
   return (
-    <div className={`palette-panel${isMobile ? "" : " views-both"}`}>
+    <div className={`palette-panel${isMobile ? "" : " views-both"}`} ref={panelRef}>
       <div className="palette-top">
         <div className="palette-header">
           <div style={{ display: "flex", alignItems: "center" }}>
