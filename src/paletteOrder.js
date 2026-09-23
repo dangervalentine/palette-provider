@@ -1,9 +1,9 @@
 import { rgbToOklab, oklabToLch } from "./oklab";
 
-export const ORDERS = ["prevalence", "hue"];
+export const ORDERS = ["prevalence", "family"];
 
 // Below this OKLCH chroma a color reads as gray, and its hue is noise.
-const NEUTRAL_CHROMA = 0.03;
+export const NEUTRAL_CHROMA = 0.03;
 
 // Extracted colors by share of the image, largest first. Sampled colors have no
 // share, so they follow in the order they were picked (the sort is stable).
@@ -25,22 +25,12 @@ function hueWheelOrder(items) {
   return [...chromatic, ...neutral];
 }
 
-// Colorful entries around the OKLCH hue wheel, then grays from light to dark.
-function byHue(colors) {
-  const items = colors.map((c) => ({ c, ...oklabToLch(rgbToOklab(...c.color)) }));
-  return hueWheelOrder(items).map((x) => x.c);
-}
-
-export function orderColors(colors, order) {
-  return order === "hue" ? byHue(colors) : byPrevalence(colors);
-}
-
-// Order for the chips inside one tier: families around the hue wheel, grays
+// Shades of one family side by side: families around the hue wheel, grays
 // last from light to dark, and within a family shades from light to dark.
 // Entries without a family (eyedropper samples) each count as their own
 // family, placed by their own hue. A family's hue and chroma are read from the
 // first entry seen for it; the engine sets the same values on every shade.
-export function orderWithinTier(colors) {
+function byFamily(colors) {
   const groups = new Map();
   colors.forEach((c, i) => {
     const key = c.family ?? `single-${i}`;
@@ -61,4 +51,8 @@ export function orderWithinTier(colors) {
   });
 
   return hueWheelOrder(families).flatMap((f) => f.shades);
+}
+
+export function orderColors(colors, order) {
+  return order === "family" ? byFamily(colors) : byPrevalence(colors);
 }

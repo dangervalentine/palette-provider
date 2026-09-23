@@ -9,7 +9,7 @@ const TARGETS = [
   { page: "step-sampling.html", out: "public/art/step-1-sampling" },
   { page: "step-density.html", out: "public/art/step-2-density" },
   { page: "step-families.html", out: "public/art/step-3-families" },
-  { page: "step-tiers.html", out: "public/art/step-4-tiers" },
+  { page: "step-order.html", out: "public/art/step-4-order" },
 ];
 
 // Vite picks the next free port if 5199 is busy; read the URL it bound.
@@ -20,7 +20,12 @@ const server = await createServer({
 await server.listen();
 const base = `${server.resolvedUrls.local[0]}art/`;
 
-const browser = await chromium.launch({ channel: "chrome", headless: true });
+// CHROME_PATH points at a Chromium build when Chrome is not installed.
+const browser = await chromium.launch(
+  process.env.CHROME_PATH
+    ? { executablePath: process.env.CHROME_PATH, headless: true }
+    : { channel: "chrome", headless: true }
+);
 const context = await browser.newContext({
   viewport: { width: 1400, height: 900 },
   deviceScaleFactor: 2,

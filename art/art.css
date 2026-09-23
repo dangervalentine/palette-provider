@@ -25,7 +25,7 @@ html, body { margin: 0; background: #000; }
   font-family: var(--sans);
   color: var(--text);
 }
-#frame svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+#frame > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 
 .label { font: 600 11px/1 var(--mono); letter-spacing: 0.22em; fill: var(--text-2); text-transform: uppercase; }
 .label-muted { font: 600 11px/1 var(--mono); letter-spacing: 0.22em; fill: var(--muted); text-transform: uppercase; }
@@ -48,3 +48,11 @@ html, body { margin: 0; background: #000; }
 /* Key art is shown at about 70% on GitHub. */
 #frame.keyart .label, #frame.keyart .label-muted { font-size: 14px; letter-spacing: 0.2em; }
 #frame.keyart .value, #frame.keyart .value-strong { font-size: 16px; }
+
+/* Color space plot shared with the app (src/viz/colorSpace.js) */
+.cs-disc { fill: rgba(10, 30, 48, 0.85); stroke: var(--border); stroke-width: 1; }
+.cs-grid { fill: none; stroke: var(--border); stroke-width: 1; stroke-opacity: 0.6; }
+.cs-sep { fill: none; stroke: var(--primary); stroke-opacity: 0.3; stroke-dasharray: 4 4; }
+.cs-tick { stroke: #fff; stroke-width: 2; }
+.cs-hit { fill: transparent; }
+.cs-peak { stroke: var(--primary); stroke-width: 2; }

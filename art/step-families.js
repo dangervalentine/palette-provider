@@ -1,5 +1,5 @@
 import { el, text, rect, swatch, ready, group } from "./svg.js";
-import { loadSource, analyze, shadesPerDetail } from "./data.js";
+import { loadSource, analyze } from "./data.js";
 
 const W = 1200, H = 480;
 
@@ -16,7 +16,7 @@ function header(num, title, captionLines, x = 48, y = 72) {
 async function main() {
   const source = await loadSource();
   const a = analyze(source);
-  const per = shadesPerDetail(source);
+  const per = a.perDetail;
   document.getElementById("frame").classList.add("step");
   const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H });
   svg.append(header("03 / SHADES", "Split families into shades", [

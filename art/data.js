@@ -1,14 +1,12 @@
-import { rgbToOklab, oklabToRgb, oklabToLch } from "../src/oklab.js";
-import { samplePoints, stratifiedSample, extractPalette } from "../src/paletteEngine.js";
-import { buildDensityMap, findFamilies, FAMILY_SEPARATION } from "../src/densityPeaks.js";
+import { oklabToLch } from "../src/oklab.js";
+import { analyzeImage, paletteFor } from "../src/paletteEngine.js";
+import { FAMILY_SEPARATION } from "../src/densityPeaks.js";
 import { rgbToHex } from "../src/colorUtils.js";
-import { orderWithinTier } from "../src/paletteOrder.js";
+import { orderColors } from "../src/paletteOrder.js";
 import { landscape } from "../src/testImages.js";
 
 export const SAMPLE_COUNT = 10000;
 export { FAMILY_SEPARATION };
-
-const labToRgb = ([L, a, b]) => oklabToRgb(L, a, b);
 
 // Loads art/source.jpg into a canvas. Falls back to the synthetic landscape
 // so the pages render without the photo.
@@ -38,39 +36,29 @@ export async function loadSource(url = "./source.jpg") {
 // Everything the compositions draw, computed once from the real engine.
 export function analyze(source, detail = "balanced") {
   const { data, width, height } = source;
-  const points = samplePoints(width, height, SAMPLE_COUNT);
-  const rgb = stratifiedSample(data, width, height, SAMPLE_COUNT);
-  const lab = rgb.map((p) => rgbToOklab(...p));
-  const bins = buildDensityMap(lab);
-  const families = findFamilies(lab).map((f) => ({
+  const analysis = analyzeImage(data, width, height);
+  const families = analysis.families.map((f) => ({
     ...f,
-    hex: rgbToHex(...labToRgb(f.color)),
-    rgb: labToRgb(f.color),
+    hex: rgbToHex(...f.rgb),
     lch: oklabToLch(f.color),
   }));
-  const entries = extractPalette(data, width, height, { detail }).map((e, i) => ({
-    ...e,
-    key: `e${i}`,
-    hex: rgbToHex(...e.color),
-  }));
-  const byTier = {};
-  for (const tier of ["dominant", "supporting", "accent"]) {
-    const items = entries.filter((e) => e.tier === tier);
-    if (items.length) byTier[tier] = orderWithinTier(items);
-  }
-  return { points, rgb, lab, bins, families, entries, byTier, width, height };
-}
-
-// Shades of every family at each Detail level, for the families step.
-export function shadesPerDetail(source) {
-  const out = {};
-  for (const detail of ["essential", "balanced", "rich"]) {
-    out[detail] = extractPalette(source.data, source.width, source.height, { detail }).map((e) => ({
-      ...e,
-      hex: rgbToHex(...e.color),
-    }));
-  }
-  return out;
+  const withHex = (e, i) => ({ ...e, key: `e${i}`, hex: rgbToHex(...e.color) });
+  const entries = paletteFor(analysis, detail).map(withHex);
+  // Shades of every family at each Detail level, for the shades step.
+  const perDetail = {};
+  for (const d of ["essential", "balanced", "rich"]) perDetail[d] = paletteFor(analysis, d).map(withHex);
+  return {
+    analysis,
+    points: analysis.points,
+    lab: analysis.oklab,
+    families,
+    entries,
+    perDetail,
+    byPrevalence: orderColors(entries, "prevalence"),
+    byFamily: orderColors(entries, "family"),
+    width,
+    height,
+  };
 }
 
 // Density of chromatic samples around the hue wheel, smoothed, normalized to 1.
