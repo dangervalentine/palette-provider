@@ -1,6 +1,8 @@
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { formatColor } from "./helpers";
 import { ORDERS, orderColors } from "./paletteOrder";
+import { pressHandlers } from "./press";
+import { snapshot, playFrom } from "./flip";
 import Breakdown from "./Breakdown";
 import ColorSpace from "./ColorSpace";
 
@@ -36,14 +38,36 @@ const ResultPanel = ({
   format,
   order,
   onOrderChange,
-  selectedFamily,
-  onSelectFamily,
+  selection,
+  onSelect,
   onCopy,
   onDownload,
   isMobile,
 }) => {
   const [view, setView] = useState(readStoredView);
   const tabRefs = useRef([]);
+  const stripRef = useRef(null);
+  const breakdownRef = useRef(null);
+  // Where the strip's swatches and the Breakdown's rows sat before an Order
+  // change, so both can slide to their new places
+  const beforeReorder = useRef(null);
+
+  const changeOrder = (next) => {
+    if (next === order) return;
+    beforeReorder.current = {
+      strip: snapshot(stripRef.current),
+      breakdown: snapshot(breakdownRef.current),
+    };
+    onOrderChange(next);
+  };
+
+  useLayoutEffect(() => {
+    const before = beforeReorder.current;
+    if (!before) return;
+    beforeReorder.current = null;
+    playFrom(stripRef.current, before.strip);
+    playFrom(breakdownRef.current, before.breakdown);
+  }, [order]);
 
   const changeView = (next) => {
     setView(next);
@@ -67,6 +91,11 @@ const ResultPanel = ({
 
   const ordered = orderColors(colors, order);
 
+  // Desktop renders both views: side by side when the pane is wide enough,
+  // behind the tabs otherwise (see .views-both in App.css). Mobile renders
+  // only the active one.
+  const panels = isMobile ? VIEWS.filter((v) => v.id === view) : VIEWS;
+
   // Writes the shrink straight to a CSS variable rather than React state, so
   // scrolling never re-renders the panel.
   const onViewScroll = (e) => {
@@ -77,79 +106,74 @@ const ResultPanel = ({
       ?.style.setProperty("--image-shrink", `${Math.min(panel.scrollTop, range)}px`);
   };
 
-  const copyAll = () =>
-    onCopy(
-      ordered.map((c) => formatColor(c.color, format)).join(", "),
-      `Copied ${ordered.length} colors`
-    );
-
-  const actions = (
-    <div className="palette-actions">
-      <button className="btn-ghost" onClick={copyAll}>
-        Copy All
-      </button>
-      <button className="btn-primary" onClick={onDownload}>
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-          <path
-            d="M8 2v8M8 10l-3-3M8 10l3-3M3 13h10"
-            stroke="currentColor"
-            strokeWidth="1.3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <span>Download</span>
-      </button>
-    </div>
-  );
-
   return (
-    <div className="palette-panel">
+    <div className={`palette-panel${isMobile ? "" : " views-both"}`}>
       <div className="palette-top">
         <div className="palette-header">
           <div style={{ display: "flex", alignItems: "center" }}>
             <h3>Palette</h3>
             <span className="palette-count">{colors.length} colors</span>
           </div>
-          {!isMobile && actions}
         </div>
 
-        <div className="palette-order" role="group" aria-label="Strip order">
-          <span className="palette-order-label">Order</span>
-          <div className="segment-group">
-            {ORDERS.map((opt) => (
-              <button
-                key={opt}
-                className={`segment-btn${order === opt ? " active" : ""}`}
-                onClick={() => onOrderChange(opt)}
-                aria-pressed={order === opt}
-              >
-                {ORDER_LABELS[opt]}
-              </button>
-            ))}
+        <div className="palette-controls">
+          <div className="palette-order" role="group" aria-label="Strip order">
+            <span className="palette-order-label">Order</span>
+            <div className="segment-group">
+              {ORDERS.map((opt) => (
+                <button
+                  key={opt}
+                  className={`segment-btn${order === opt ? " active" : ""}`}
+                  onClick={() => changeOrder(opt)}
+                  aria-pressed={order === opt}
+                >
+                  {ORDER_LABELS[opt]}
+                </button>
+              ))}
+            </div>
           </div>
+          <button className="btn-primary palette-download" onClick={onDownload}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M8 2v8M8 10l-3-3M8 10l3-3M3 13h10"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>Download</span>
+          </button>
         </div>
 
-        {/* Tapping a color copies it and selects its family in the views */}
-        <div className="palette-strip">
+        {/* Tapping a color copies it and selects just that color in the
+            views; tapping it again clears the selection. With a whole family
+            selected, all of its shades are marked */}
+        <div className="palette-strip" ref={stripRef}>
           {ordered.map((c) => {
             const value = formatColor(c.color, format);
+            const selected =
+              c.family === selection?.family &&
+              (selection.shade == null || selection.shade === c.shade);
             return (
               <button
                 key={c.key}
-                className={`palette-strip-segment${
-                  c.family === selectedFamily ? " is-selected" : ""
-                }`}
+                data-flip-key={c.key}
+                className={`palette-strip-segment${selected ? " is-selected" : ""}`}
                 style={{
                   backgroundColor: `rgb(${c.color.join(",")})`,
                   "--swatch-ink": c.okL > 0.5 ? "#000000" : "#FFFFFF",
+                  // Hover widens a segment just enough to fit its value
+                  "--value-length": value.length,
                 }}
                 onClick={() => {
                   onCopy(value);
-                  onSelectFamily(c.family);
+                  onSelect(c.family, c.shade);
                 }}
                 aria-label={`Copy ${value}`}
+                aria-pressed={selected}
                 title={value}
+                {...pressHandlers}
               >
                 <span className="palette-strip-value">{value}</span>
               </button>
@@ -181,32 +205,39 @@ const ResultPanel = ({
         </div>
       </div>
 
-      <div
-        className="view-panel"
-        role="tabpanel"
-        id={`view-panel-${view}`}
-        aria-labelledby={`view-tab-${view}`}
-        onScroll={isMobile ? onViewScroll : undefined}
-      >
-        {view === "breakdown" ? (
-          <Breakdown
-            analysis={analysis}
-            detail={detail}
-            format={format}
-            selectedFamily={selectedFamily}
-            onSelectFamily={onSelectFamily}
-            onCopy={onCopy}
-          />
-        ) : (
-          <ColorSpace
-            analysis={analysis}
-            selectedFamily={selectedFamily}
-            onSelectFamily={onSelectFamily}
-          />
-        )}
+      <div className="view-panels">
+        {panels.map((v) => (
+          <div
+            key={v.id}
+            className={`view-panel${view === v.id ? " is-active" : ""}`}
+            role="tabpanel"
+            id={`view-panel-${v.id}`}
+            aria-labelledby={`view-tab-${v.id}`}
+            onScroll={isMobile ? onViewScroll : undefined}
+          >
+            <h4 className="view-heading">{v.label}</h4>
+            {v.id === "breakdown" ? (
+              <Breakdown
+                analysis={analysis}
+                detail={detail}
+                format={format}
+                order={order}
+                listRef={breakdownRef}
+                selection={selection}
+                onSelect={onSelect}
+                onCopy={onCopy}
+              />
+            ) : (
+              <ColorSpace
+                analysis={analysis}
+                detail={detail}
+                selection={selection}
+                onSelect={onSelect}
+              />
+            )}
+          </div>
+        ))}
       </div>
-
-      {isMobile && actions}
     </div>
   );
 };

@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { extractPalette, analyzeImage, paletteFor, stratifiedSample, samplePoints } from "./paletteEngine";
+import {
+  extractPalette,
+  analyzeImage,
+  paletteFor,
+  limitFamilies,
+  stratifiedSample,
+  samplePoints,
+} from "./paletteEngine";
 import { rgbToOklab, oklabDistance } from "./oklab";
 import {
   makeImageData,
@@ -165,6 +172,60 @@ describe("analyzeImage", () => {
 
   it("returns empty results for an empty image", () => {
     expect(analyzeImage(new Uint8ClampedArray(0), 0, 0)).toEqual({ points: [], oklab: [], families: [] });
+  });
+});
+
+describe("limitFamilies", () => {
+  it("returns the same analysis for 'all' or a limit it already meets", () => {
+    const { data, width, height } = landscape();
+    const a = analyzeImage(data, width, height);
+    expect(limitFamilies(a, "all", "rich")).toBe(a);
+    for (const detail of DETAILS) {
+      expect(limitFamilies(a, paletteFor(a, detail).length, detail)).toBe(a);
+    }
+  });
+
+  it("shows at most the limit in swatches at every Detail level", () => {
+    const { data, width, height } = landscape();
+    const a = analyzeImage(data, width, height);
+    for (const detail of DETAILS) {
+      expect(paletteFor(a, detail).length).toBeGreaterThan(3);
+      const limited = limitFamilies(a, 3, detail);
+      expect(limited.oklab).toBe(a.oklab);
+      expect(limited.mergedFrom).toBe(a.families.length);
+      const entries = paletteFor(limited, detail);
+      expect(entries.length).toBeLessThanOrEqual(3);
+      const total = entries.reduce((sum, e) => sum + e.percentage, 0);
+      expect(total).toBeCloseTo(100, 0);
+    }
+  });
+
+  it("spends the swatches on fewer families at higher Detail", () => {
+    const { data, width, height } = landscape();
+    const a = analyzeImage(data, width, height);
+    const essential = limitFamilies(a, 3, "essential").families.length;
+    const rich = limitFamilies(a, 3, "rich").families.length;
+    expect(essential).toBe(3);
+    expect(rich).toBeLessThanOrEqual(essential);
+  });
+
+  it("keeps a small distinct accent under a tight limit at every Detail level", () => {
+    const { data, width, height } = greenWithRed();
+    for (const detail of DETAILS) {
+      const entries = extractPalette(data, width, height, { detail, colors: 3 });
+      expect(entries.length).toBeLessThanOrEqual(3);
+      expect(withHue(entries, 25, 30).length).toBe(1);
+    }
+  });
+
+  it("keeps at least two families and fills the limit when shades allow", () => {
+    const { data, width, height } = landscape();
+    const a = analyzeImage(data, width, height);
+    for (const detail of ["balanced", "rich"]) {
+      const limited = limitFamilies(a, 3, detail);
+      expect(limited.families.length).toBeGreaterThanOrEqual(2);
+      expect(paletteFor(limited, detail)).toHaveLength(3);
+    }
   });
 });
 

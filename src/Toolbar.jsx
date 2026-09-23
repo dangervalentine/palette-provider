@@ -1,6 +1,14 @@
 import Select from "./Select";
+import { COLOR_LIMITS } from "./paletteEngine";
 
 const DETAIL_OPTIONS = ["essential", "balanced", "rich"];
+
+// Radix Select values are strings; the engine takes "all" or a number.
+const COLOR_OPTIONS = COLOR_LIMITS.map((limit) => ({
+  value: String(limit),
+  label: limit === "all" ? "All" : `Up to ${limit}`,
+}));
+const parseLimit = (value) => (value === "all" ? "all" : Number(value));
 
 const FORMAT_OPTIONS = [
   { value: "hex", label: "HEX" },
@@ -14,6 +22,8 @@ const Toolbar = ({
   hasImage,
   detail,
   onDetailChange,
+  colorLimit,
+  onColorLimitChange,
   colorFormat,
   onColorFormatChange,
   onChangeImage,
@@ -21,6 +31,17 @@ const Toolbar = ({
 }) => {
   return (
     <div className="toolbar">
+      {/* Sits beside the options, next to the palette pane they change */}
+      {!isMobile && (
+        <>
+          <button className="btn-ghost" onClick={onChangeImage}>
+            <UploadIcon />
+            <span>{hasImage ? "Replace" : "Upload"}</span>
+          </button>
+          <div className="toolbar-divider" />
+        </>
+      )}
+
       <div className="toolbar-group">
         <span className="toolbar-label">Detail</span>
         {isMobile ? (
@@ -53,6 +74,19 @@ const Toolbar = ({
       <div className="toolbar-divider" />
 
       <div className="toolbar-group">
+        <span className="toolbar-label">Colors</span>
+        <Select
+          label="Colors"
+          value={String(colorLimit)}
+          onValueChange={(value) => onColorLimitChange(parseLimit(value))}
+          options={COLOR_OPTIONS}
+          disabled={!hasImage}
+        />
+      </div>
+
+      <div className="toolbar-divider" />
+
+      <div className="toolbar-group">
         <span className="toolbar-label">Format</span>
         <Select
           label="Format"
@@ -62,16 +96,6 @@ const Toolbar = ({
           disabled={!hasImage}
         />
       </div>
-
-      {!isMobile && (
-        <>
-          <div className="toolbar-divider" />
-          <button className="btn-ghost" onClick={onChangeImage}>
-            <UploadIcon />
-            <span>Upload</span>
-          </button>
-        </>
-      )}
     </div>
   );
 };

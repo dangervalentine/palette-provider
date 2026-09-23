@@ -1,9 +1,8 @@
 import { useState } from "react";
 import logo from "./logo.svg";
 import { getInitialTheme, setTheme } from "./theme";
-import { UploadIcon } from "./Toolbar";
 
-const Header = ({ onUpload }) => {
+const Header = () => {
   const [mode, setMode] = useState(getInitialTheme);
 
   const toggle = () => {
@@ -26,15 +25,6 @@ const Header = ({ onUpload }) => {
           <p>by Danger Valentine</p>
         </a>
       </div>
-      {onUpload && (
-        <button
-          className="btn-ghost header-upload"
-          onClick={onUpload}
-          aria-label="Upload image"
-        >
-          <UploadIcon />
-        </button>
-      )}
       <div className="theme-toggle" onClick={toggle} role="button" tabIndex={0}>
         <span>{"\u263D"}</span>
         <div className="theme-toggle-track">

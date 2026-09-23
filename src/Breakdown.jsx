@@ -1,5 +1,7 @@
 import { oklabToRgb } from "./oklab";
 import { formatColor } from "./helpers";
+import { pressHandlers } from "./press";
+import { orderFamilies } from "./paletteOrder";
 
 const pct = (share) => {
   const p = share * 100;
@@ -8,15 +10,18 @@ const pct = (share) => {
 
 const rgbCss = (rgb) => `rgb(${rgb.join(",")})`;
 
-// Every family, largest first, as a bar as long as its share of the image.
-// The bar is split into the family's shades at the current Detail level, and
-// the shades' values are listed under it.
+// Every family, in the strip's Order (largest first, or around the hue wheel),
+// as a bar as long as its share of the image. The bar is split into the family's shades at the current Detail level, and
+// the shades' values are listed under it. The bar selects the whole family;
+// a shade's value copies it and selects just that shade.
 const Breakdown = ({
   analysis,
   detail,
   format,
-  selectedFamily,
-  onSelectFamily,
+  order,
+  listRef,
+  selection,
+  onSelect,
   onCopy,
 }) => {
   const { families } = analysis;
@@ -29,26 +34,31 @@ const Breakdown = ({
   return (
     <div className="breakdown">
       <p className="view-caption">
-        {families.length} {families.length === 1 ? "family" : "families"} ·{" "}
+        {families.length} {families.length === 1 ? "family" : "families"}
+        {analysis.mergedFrom && ` (merged from ${analysis.mergedFrom})`} ·{" "}
         {shadeCount} shades at {detail[0].toUpperCase() + detail.slice(1)}.
         Bars show each family's share of the image.
       </p>
-      <ol className="bd-list">
-        {families.map((f, i) => {
+      <ol className="bd-list" ref={listRef}>
+        {orderFamilies(families, order, detail).map((i) => {
+          const f = families[i];
           const shades = f.shades[detail].map((s) => ({
             ...s,
             rgb: oklabToRgb(...s.color),
           }));
-          const selected = i === selectedFamily;
+          const selected = i === selection?.family;
+          const wholeFamily = selected && selection.shade == null;
           return (
             <li
               key={i}
+              data-flip-key={i}
               className={`bd-row${selected ? " is-selected" : ""}`}
+              {...pressHandlers}
             >
               <button
                 className="bd-select"
-                onClick={() => onSelectFamily(selected ? null : i)}
-                aria-pressed={selected}
+                onClick={() => onSelect(i)}
+                aria-pressed={wholeFamily}
                 aria-label={`Family ${i + 1}, ${pct(f.share)} of the image`}
               >
                 <span
@@ -77,12 +87,18 @@ const Breakdown = ({
               <div className="bd-shades">
                 {shades.map((s, k) => {
                   const value = formatColor(s.rgb, format);
+                  const shadeSelected = selected && selection.shade === k;
                   return (
                     <button
                       key={k}
-                      className="bd-shade"
-                      onClick={() => onCopy(value)}
+                      className={`bd-shade${shadeSelected ? " is-selected" : ""}`}
+                      onClick={() => {
+                        onCopy(value);
+                        onSelect(i, k);
+                      }}
                       aria-label={`Copy ${value}`}
+                      aria-pressed={shadeSelected}
+                      {...pressHandlers}
                     >
                       <span
                         className="bd-shade-dot"

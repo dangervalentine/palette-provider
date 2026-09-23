@@ -1,14 +1,15 @@
 import { useCallback, useMemo, useState, useRef } from "react";
 import Header from "./Header";
-import Toolbar from "./Toolbar";
+import Toolbar, { UploadIcon } from "./Toolbar";
 import { GithubAttribution } from "./GithubAttribution";
 import ResultPanel from "./ResultPanel";
 import SampleOverlay from "./SampleOverlay";
 import { formatColor, copyToClipboard } from "./helpers";
-import { analyzeImage, paletteFor } from "./paletteEngine";
+import { analyzeImage, limitFamilies, paletteFor } from "./paletteEngine";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import EyedropperPreview from "./EyedropperPreview";
 import { useEyedropper } from "./hooks/useEyedropper";
+import { oklabToRgb } from "./oklab";
 import { ORDERS, orderColors } from "./paletteOrder";
 
 import "./App.css";
@@ -23,9 +24,9 @@ const readStoredOrder = () => {
     const stored = localStorage.getItem(ORDER_STORAGE_KEY);
     // "hue" was the earlier name for grouping by family
     if (stored === "hue") return "family";
-    return ORDERS.includes(stored) ? stored : "prevalence";
+    return ORDERS.includes(stored) ? stored : "family";
   } catch {
-    return "prevalence";
+    return "family";
   }
 };
 
@@ -34,26 +35,63 @@ const App = () => {
   const [fileName, setFileName] = useState("");
   const [image, setImage] = useState("");
   const [detail, setDetail] = useState("balanced");
+  const [colorLimit, setColorLimit] = useState(5);
   const [colorFormat, setColorFormat] = useState("hex");
   const [order, setOrder] = useState(readStoredOrder);
   // Everything the engine found in the current image; Detail only picks
   // which of its precomputed shades make up the palette.
   const [analysis, setAnalysis] = useState(null);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
-  const [selectedFamily, setSelectedFamily] = useState(null);
+  // { family, shade }: one color, or a whole family when shade is null
+  const [selection, setSelection] = useState(null);
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
   const photoContainer = useRef(null);
   const canvasRef = useRef(null);
   const inputRef = useRef(null);
 
+  // The analysis with its families merged until their shades at this Detail
+  // level fit the Colors limit. Everything downstream reads this, so the
+  // palette and its diagrams always agree.
+  const limited = useMemo(
+    () => (analysis ? limitFamilies(analysis, colorLimit, detail) : null),
+    [analysis, colorLimit, detail]
+  );
+
   const colors = useMemo(
     () =>
-      analysis
-        ? paletteFor(analysis, detail).map((c, i) => ({ ...c, key: `extracted-${i}` }))
+      limited
+        ? paletteFor(limited, detail).map((c, i) => ({ ...c, key: `extracted-${i}` }))
         : [],
-    [analysis, detail]
+    [limited, detail]
   );
+
+  // Family indices change when families merge, so a selection would point at
+  // a different family. With a limit set, Detail can change the merge too;
+  // without one it still re-splits the shades, so only the family survives.
+  const handleColorLimitChange = useCallback((next) => {
+    setColorLimit(next);
+    setSelection(null);
+  }, []);
+
+  const handleDetailChange = useCallback(
+    (next) => {
+      setDetail(next);
+      setSelection((sel) =>
+        colorLimit === "all" && sel ? { family: sel.family, shade: null } : null
+      );
+    },
+    [colorLimit]
+  );
+
+  // Selecting what is already selected clears it
+  const handleSelect = useCallback((family, shade = null) => {
+    setSelection((sel) =>
+      family == null || (sel?.family === family && sel.shade === shade)
+        ? null
+        : { family, shade }
+    );
+  }, []);
 
   const copy = useCallback((value, message = `Copied ${value}`) => {
     copyToClipboard(value);
@@ -91,7 +129,7 @@ const App = () => {
         ctx.drawImage(img, 0, 0, w, h);
         const data = ctx.getImageData(0, 0, w, h).data;
         setImageSize({ width: w, height: h });
-        setSelectedFamily(null);
+        setSelection(null);
         setAnalysis(analyzeImage(data, w, h));
       };
       img.src = imgSrc;
@@ -172,20 +210,33 @@ const App = () => {
     setFileName("");
     setImage("");
     setAnalysis(null);
-    setSelectedFamily(null);
+    setSelection(null);
   }, []);
 
   const handleOriginalPaneClick = useCallback(() => {
     inputRef.current?.click();
   }, []);
 
-  const selected = analysis?.families[selectedFamily];
+  // The samples to mark on the image: the selected shade's, or the family's
+  const selectedFamily = limited?.families[selection?.family];
+  const selectedShade = selectedFamily?.shades[detail][selection.shade];
+  // Memoized: the overlay replays its animation whenever this changes
+  const selected = useMemo(
+    () =>
+      selectedShade
+        ? { members: selectedShade.members, rgb: oklabToRgb(...selectedShade.color) }
+        : selectedFamily,
+    [selectedShade, selectedFamily]
+  );
 
   const sourceImage = (
     <div className="image-wrapper">
-      <button className="image-remove" onClick={clearImage}>
-        &times;
-      </button>
+      {/* Mobile has Replace in the pane's corner instead (see below) */}
+      {!isMobile && (
+        <button className="image-remove" onClick={clearImage}>
+          &times;
+        </button>
+      )}
       <img
         ref={eyedropper.bindImage}
         className="image-file eyedropper-active"
@@ -193,24 +244,26 @@ const App = () => {
         alt="uploaded file"
         {...eyedropper.handlers}
       />
+      {limited && (
+        <SampleOverlay
+          analysis={limited}
+          family={selected}
+          width={imageSize.width}
+          height={imageSize.height}
+        />
+      )}
       {selected && (
         <>
-          <SampleOverlay
-            analysis={analysis}
-            family={selected}
-            width={imageSize.width}
-            height={imageSize.height}
-          />
           <button
             className="overlay-chip"
-            onClick={() => setSelectedFamily(null)}
-            aria-label="Stop showing this family's samples"
+            onClick={() => setSelection(null)}
+            aria-label={`Stop showing this ${selectedShade ? "color" : "family"}'s samples`}
           >
             <span
               className="overlay-chip-dot"
               style={{ backgroundColor: `rgb(${selected.rgb.join(",")})` }}
             />
-            <span>Samples of this family</span>
+            <span>Samples of this {selectedShade ? "color" : "family"}</span>
             <span aria-hidden="true">&times;</span>
           </button>
         </>
@@ -218,16 +271,16 @@ const App = () => {
     </div>
   );
 
-  const resultPanel = analysis ? (
+  const resultPanel = limited ? (
     <ResultPanel
-      analysis={analysis}
+      analysis={limited}
       colors={colors}
       detail={detail}
       format={colorFormat}
       order={order}
       onOrderChange={handleOrderChange}
-      selectedFamily={selectedFamily}
-      onSelectFamily={setSelectedFamily}
+      selection={selection}
+      onSelect={handleSelect}
       onCopy={copy}
       onDownload={downloadPalette}
       isMobile={isMobile}
@@ -242,13 +295,13 @@ const App = () => {
 
   return (
     <div className="app-shell">
-      <Header
-        onUpload={isMobile ? () => inputRef.current?.click() : undefined}
-      />
+      <Header />
       <Toolbar
         hasImage={hasImage}
         detail={detail}
-        onDetailChange={setDetail}
+        onDetailChange={handleDetailChange}
+        colorLimit={colorLimit}
+        onColorLimitChange={handleColorLimitChange}
         colorFormat={colorFormat}
         onColorFormatChange={setColorFormat}
         onChangeImage={() => inputRef.current?.click()}
@@ -267,22 +320,29 @@ const App = () => {
           onDragLeave={onDragLeave}
           onDrop={onDrop}
         >
-          {isMobile ? (
-            hasImage ? (
-              <div className="split-view">
-                <div className="split-pane original-pane">
-                  <div className="pane-label">Source</div>
-                  {sourceImage}
-                </div>
-                <div className="split-pane palette-pane">
-                  {resultPanel}
-                </div>
+          {/* Mobile stacks the same panes that sit side by side on desktop */}
+          <div className={`split-view${hasImage ? "" : " is-empty"}`}>
+            <div
+              className="split-pane original-pane"
+              onClick={hasImage ? undefined : handleOriginalPaneClick}
+            >
+              <div className="pane-label">
+                {hasImage ? "Source" : "Upload"}
               </div>
-            ) : (
-              <div
-                className="photo border"
-                onClick={() => inputRef.current?.click()}
-              >
+              {/* Desktop keeps Replace in the toolbar; mobile pins it to
+                  this pane's corner, wherever the image sits inside it */}
+              {hasImage && isMobile && (
+                <button
+                  className="image-replace"
+                  onClick={() => inputRef.current?.click()}
+                >
+                  <UploadIcon />
+                  <span>Replace</span>
+                </button>
+              )}
+              {hasImage ? (
+                sourceImage
+              ) : (
                 <div className="empty-state">
                   <img src={upload} alt="upload" />
                   <div className="image-text">
@@ -290,89 +350,67 @@ const App = () => {
                     <div className="tagline">or drag it here</div>
                   </div>
                 </div>
-              </div>
-            )
-          ) : (
-            <div className="split-view">
-              <div
-                className="split-pane original-pane"
-                onClick={hasImage ? undefined : handleOriginalPaneClick}
-              >
-                <div className="pane-label">
-                  {hasImage ? "Source" : "Upload"}
-                </div>
-                {hasImage ? (
-                  sourceImage
-                ) : (
-                  <div className="empty-state">
-                    <img src={upload} alt="upload" />
-                    <div className="image-text">
-                      <span className="bold">Choose a file</span>
-                      <div className="tagline">or drag it here</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="split-pane palette-pane">
-                {/* Once loaded, the palette's own header labels the pane */}
-                {!hasImage && <div className="pane-label">Palette</div>}
-                {hasImage ? (
-                  resultPanel
-                ) : (
-                  <div className="empty-preview">
-                    <svg
-                      width="48"
-                      height="48"
-                      viewBox="0 0 48 48"
-                      fill="none"
-                    >
-                      <circle
-                        cx="15"
-                        cy="15"
-                        r="7"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeDasharray="4 3"
-                        fill="currentColor"
-                        fillOpacity="0.15"
-                      />
-                      <circle
-                        cx="33"
-                        cy="15"
-                        r="7"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeDasharray="4 3"
-                        fill="currentColor"
-                        fillOpacity="0.15"
-                      />
-                      <circle
-                        cx="15"
-                        cy="33"
-                        r="7"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeDasharray="4 3"
-                        fill="currentColor"
-                        fillOpacity="0.15"
-                      />
-                      <circle
-                        cx="33"
-                        cy="33"
-                        r="7"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeDasharray="4 3"
-                        fill="currentColor"
-                        fillOpacity="0.15"
-                      />
-                    </svg>
-                    <span>Your palette, and how it was found, will appear here</span>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
-          )}
+            <div className="split-pane palette-pane">
+              {/* Once loaded, the palette's own header labels the pane */}
+              {!hasImage && <div className="pane-label">Palette</div>}
+              {hasImage ? (
+                resultPanel
+              ) : (
+                <div className="empty-preview">
+                  <svg
+                    width="48"
+                    height="48"
+                    viewBox="0 0 48 48"
+                    fill="none"
+                  >
+                    <circle
+                      cx="15"
+                      cy="15"
+                      r="7"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 3"
+                      fill="currentColor"
+                      fillOpacity="0.15"
+                    />
+                    <circle
+                      cx="33"
+                      cy="15"
+                      r="7"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 3"
+                      fill="currentColor"
+                      fillOpacity="0.15"
+                    />
+                    <circle
+                      cx="15"
+                      cy="33"
+                      r="7"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 3"
+                      fill="currentColor"
+                      fillOpacity="0.15"
+                    />
+                    <circle
+                      cx="33"
+                      cy="33"
+                      r="7"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 3"
+                      fill="currentColor"
+                      fillOpacity="0.15"
+                    />
+                  </svg>
+                  <span>Your palette, and how it was found, will appear here</span>
+                </div>
+              )}
+            </div>
+          </div>
           <canvas ref={canvasRef} className="main-canvas" />
         </div>
         <input

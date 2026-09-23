@@ -48,7 +48,8 @@ function chromaRange(oklab, families) {
 // separation, and chromatic families get a tick on the ring at their hue.
 //
 // Returns { node, select }. `node` is an <svg> with viewBox 0 0 size size.
-// `select(index | null)` highlights one family and draws its member samples.
+// `select(index | null, members?)` highlights one family and draws its member
+// samples, or only `members` when given (one shade of the family).
 // Chrome (disc, grid, separation circles, peak outlines) is styled by the
 // host page through the cs-* classes, so it follows the page's theme.
 export function colorSpacePlot({ oklab, families, size = 400, idPrefix = "cs" }) {
@@ -140,7 +141,7 @@ export function colorSpacePlot({ oklab, families, size = 400, idPrefix = "cs" })
   reversed.forEach(([g]) => svg.append(g));
   reversed.forEach(([, peak]) => svg.append(peak));
 
-  const select = (index) => {
+  const select = (index, only) => {
     memberLayer.replaceChildren();
     familyNodes.forEach((nodes, i) => {
       for (const node of nodes) {
@@ -149,7 +150,7 @@ export function colorSpacePlot({ oklab, families, size = 400, idPrefix = "cs" })
       }
     });
     if (index == null || !families[index]) return;
-    const members = families[index].members;
+    const members = only ?? families[index].members;
     const step = Math.max(1, Math.ceil(members.length / MAX_MEMBER_DOTS));
     const dotR = size * 0.004;
     for (let m = 0; m < members.length; m += step) {

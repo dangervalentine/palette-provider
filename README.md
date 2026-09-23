@@ -39,6 +39,8 @@ Palette Provider finds the **color families** in an image as density peaks in th
 
 **Detail Levels** &mdash; Essential (one shade per family), Balanced (up to two), or Rich (up to three). Detail adds depth within families; it never adds or removes families.
 
+**Color Limit** &mdash; Show every color, or at most 8, 5, or 3 swatches. When the palette is over the limit, the closest families merge until their shades fit, so Detail decides how the swatches are spent: distinct colors at Essential, fewer colors in more shades at Rich. Lightness counts least when merging, so a vivid accent outlasts neutrals that differ only in brightness, and the larger family keeps its own color.
+
 **Palette Strip** &mdash; Every color in one strip, ordered by **Prevalence** (largest shades first) or **Family** (each family's shades together, families around the hue wheel). Tap a color to copy it and select its family.
 
 **Breakdown** &mdash; Each family as a bar as long as its share of the image, split into its shades, with every shade's value and share.

@@ -53,6 +53,22 @@ function byFamily(colors) {
   return hueWheelOrder(families).flatMap((f) => f.shades);
 }
 
+// The order the Breakdown lists the engine's families in, as family indices.
+// "prevalence" keeps the engine's order, largest first; "family" places them
+// as the strip does, reading each family's lightness from its shades at this
+// Detail level.
+export function orderFamilies(families, order, detail) {
+  const indices = families.map((_, i) => i);
+  if (order !== "family") return indices;
+  const items = indices.map((i) => {
+    const f = families[i];
+    const shades = f.shades[detail];
+    const L = shades.reduce((sum, s) => sum + s.color[0], 0) / shades.length;
+    return { i, hue: f.hue, chroma: f.chroma, L };
+  });
+  return hueWheelOrder(items).map((x) => x.i);
+}
+
 export function orderColors(colors, order) {
   return order === "family" ? byFamily(colors) : byPrevalence(colors);
 }
