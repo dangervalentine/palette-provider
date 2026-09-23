@@ -1,6 +1,6 @@
-import { el, text, rect, circle, line, group, swatch, ready } from "./svg.js";
-import { loadSource, analyze, FAMILY_SEPARATION } from "./data.js";
-import { oklabToRgb } from "../src/oklab.js";
+import { el, text, group, swatch, ready } from "./svg.js";
+import { loadSource, analyze } from "./data.js";
+import { colorSpacePlot } from "../src/viz/colorSpace.js";
 
 const W = 1200, H = 480;
 
@@ -27,42 +27,18 @@ async function main() {
     "always its own family.",
   ]));
 
-  const ox = 500, oy = 64, os = 330, range = 0.2;
-  const X = (v) => ox + ((v + range) / (2 * range)) * os;
-  const Y = (v) => oy + os - ((v + range) / (2 * range)) * os;
-  const binPx = (0.02 / (2 * range)) * os;
-  svg.append(el("clipPath", { id: "pl" }, rect(ox, oy, os, os, { rx: 6 })));
-  svg.append(rect(ox, oy, os, os, { rx: 6, class: "panel" }));
-  svg.append(line(X(0), oy, X(0), oy + os, { class: "hair", "stroke-opacity": 0.5 }));
-  svg.append(line(ox, Y(0), ox + os, Y(0), { class: "hair", "stroke-opacity": 0.5 }));
-  svg.append(text(ox + os - 6, Y(0) - 6, "+a", { class: "label-muted", "text-anchor": "end", style: "font-size:13px;text-transform:none" }));
-  svg.append(text(X(0) + 6, oy + 14, "+b", { class: "label-muted", style: "font-size:13px;text-transform:none" }));
+  // The same plot the app shows on its Color space tab. Angle is hue, the
+  // distance from the center is chroma, and lightness is flattened.
+  const size = 390;
+  const plot = colorSpacePlot({ oklab: a.lab, families: a.families, size, idPrefix: "density" }).node;
+  plot.setAttribute("x", 486);
+  plot.setAttribute("y", 22);
+  plot.setAttribute("width", size);
+  plot.setAttribute("height", size);
+  svg.append(plot);
+  svg.append(text(486, 446, "OKLAB A/B PLANE · HUE RING", { class: "label" }));
 
-  const maxD = Math.max(...a.bins.map((b) => b.density));
-  const binsG = group({ "clip-path": "url(#pl)" });
-  for (const b of a.bins) {
-    const [L, aa, bb] = b.center;
-    const rgb = oklabToRgb(L, aa, bb);
-    binsG.append(rect(X(aa) - binPx / 2, Y(bb) - binPx / 2, binPx, binPx, { fill: `rgb(${rgb.join(",")})`, opacity: 0.15 + 0.85 * (b.density / maxD) }));
-  }
-  svg.append(binsG);
-  a.families.forEach((f) => {
-    const cx = X(f.peak[1]), cy = Y(f.peak[2]);
-    svg.append(circle(cx, cy, (FAMILY_SEPARATION / (2 * range)) * os, { fill: "none", stroke: "#82aaff", "stroke-opacity": 0.2, "stroke-dasharray": "4 4", "clip-path": "url(#pl)" }));
-    svg.append(circle(cx, cy, 9, { fill: `rgb(${f.rgb.join(",")})`, stroke: "#82aaff", "stroke-width": 2 }));
-  });
-  svg.append(text(ox, oy + os + 26, "OKLAB a/b PLANE", { class: "label" }));
-  svg.append(text(ox, oy + os + 48, "BIN 0.02 · SEPARATION 0.10", { class: "label" }));
-  // Separation weights lightness down; peaks that differ mostly in L can sit
-  // inside each other's circle in this a/b projection.
-  const r = (FAMILY_SEPARATION / (2 * range)) * os;
-  const overlap = a.families.some((f, i) =>
-    a.families.some((g, j) => j > i && Math.hypot(X(f.peak[1]) - X(g.peak[1]), Y(f.peak[2]) - Y(g.peak[2])) < r));
-  if (overlap) {
-    svg.append(text(ox, oy + os + 70, "(distance is weighted, so peaks may overlap here)", { class: "label-muted", style: "font-size:12px;letter-spacing:0.08em" }));
-  }
-
-  const lx = 880, ly = 90;
+  const lx = 910, ly = 90;
   svg.append(text(lx, ly, "FAMILIES", { class: "label" }));
   a.families.forEach((f, i) => {
     const yy = ly + 34 + i * 34;

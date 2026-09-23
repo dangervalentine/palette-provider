@@ -1,7 +1,6 @@
 import { rgbToOklab, oklabToRgb, oklabToLch } from "./oklab";
 import { findFamilies } from "./densityPeaks";
 import { splitShades } from "./shades";
-import { classifyTiers } from "./tierClassifier";
 
 const TARGET_SAMPLES = 10000;
 
@@ -43,42 +42,60 @@ export function stratifiedSample(imageData, width, height, targetCount) {
   });
 }
 
+// Everything the palette and its diagrams are built from, computed once per
+// image: the sample positions and their OKLAB values, and the families with
+// their shades at every Detail level. Changing Detail reads a different set of
+// shades from the same analysis, so it needs no new pass over the image.
+// Families are sorted by share, largest first; each carries
+// { peak, color, members, share, rgb, hue, chroma, shades: { [detail]: [...] } }.
+export function analyzeImage(imageData, width, height) {
+  if (width === 0 || height === 0) return { points: [], oklab: [], families: [] };
+
+  const points = samplePoints(width, height, TARGET_SAMPLES);
+  const oklab = points.map(({ x, y }) => {
+    const idx = (y * width + x) * 4;
+    return rgbToOklab(imageData[idx], imageData[idx + 1], imageData[idx + 2]);
+  });
+
+  const families = findFamilies(oklab).map((family) => {
+    const { hue, chroma } = oklabToLch(family.color);
+    const shades = {};
+    for (const [detail, maxShades] of Object.entries(DETAIL_SHADES)) {
+      shades[detail] = splitShades(family, oklab, maxShades, oklab.length);
+    }
+    return {
+      ...family,
+      rgb: oklabToRgb(...family.color),
+      hue,
+      chroma,
+      shades,
+    };
+  });
+
+  return { points, oklab, families };
+}
+
+// The palette entries for one Detail level: every shade of every family, in
+// family order, each as { color, okL, percentage, family, familyHue, familyChroma }.
+export function paletteFor(analysis, detail = "balanced") {
+  const level = detail in DETAIL_SHADES ? detail : "balanced";
+  return analysis.families.flatMap((family, familyIndex) =>
+    family.shades[level].map((shade) => ({
+      color: oklabToRgb(shade.color[0], shade.color[1], shade.color[2]),
+      okL: shade.color[0],
+      percentage: shade.share * 100,
+      family: familyIndex,
+      familyHue: family.hue,
+      familyChroma: family.chroma,
+    }))
+  );
+}
+
 export function extractPalette(
   imageData,
   width,
   height,
   { detail = "balanced" } = {}
 ) {
-  if (width === 0 || height === 0) return [];
-
-  const rgbPixels = stratifiedSample(imageData, width, height, TARGET_SAMPLES);
-  const oklabPixels = rgbPixels.map(([r, g, b]) => rgbToOklab(r, g, b));
-
-  const families = findFamilies(oklabPixels);
-  if (families.length === 0) return [];
-
-  // Tiers are decided per family; every shade inherits its family's tier.
-  const tiered = classifyTiers(
-    families.map((f) => ({ count: f.members.length }))
-  );
-  const maxShades = DETAIL_SHADES[detail] ?? DETAIL_SHADES.balanced;
-
-  const entries = [];
-  families.forEach((family, familyIndex) => {
-    const { hue, chroma } = oklabToLch(family.color);
-    const shades = splitShades(family, oklabPixels, maxShades, oklabPixels.length);
-    for (const shade of shades) {
-      entries.push({
-        color: oklabToRgb(shade.color[0], shade.color[1], shade.color[2]),
-        okL: shade.color[0],
-        percentage: shade.share * 100,
-        tier: tiered[familyIndex].tier,
-        family: familyIndex,
-        familyHue: hue,
-        familyChroma: chroma,
-      });
-    }
-  });
-
-  return entries;
+  return paletteFor(analyzeImage(imageData, width, height), detail);
 }

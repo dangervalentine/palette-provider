@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { extractPalette, stratifiedSample, samplePoints } from "./paletteEngine";
+import { extractPalette, analyzeImage, paletteFor, stratifiedSample, samplePoints } from "./paletteEngine";
 import { rgbToOklab, oklabDistance } from "./oklab";
 import {
   makeImageData,
@@ -89,7 +89,6 @@ describe("extractPalette shape", () => {
       expect(c.color).toHaveLength(3);
       expect(typeof c.okL).toBe("number");
       expect(typeof c.percentage).toBe("number");
-      expect(["dominant", "supporting", "accent"]).toContain(c.tier);
       expect(typeof c.family).toBe("number");
       expect(typeof c.familyHue).toBe("number");
       expect(typeof c.familyChroma).toBe("number");
@@ -129,14 +128,43 @@ describe("extractPalette shape", () => {
     );
   });
 
-  it("gives every shade its family's tier", () => {
+  it("gives every shade its family's hue and chroma", () => {
     const { data, width, height } = landscape();
-    const result = extractPalette(data, width, height, { detail: "rich" });
-    const tierByFamily = new Map();
-    for (const c of result) {
-      if (!tierByFamily.has(c.family)) tierByFamily.set(c.family, c.tier);
-      expect(c.tier).toBe(tierByFamily.get(c.family));
+    const { families } = analyzeImage(data, width, height);
+    for (const c of extractPalette(data, width, height, { detail: "rich" })) {
+      expect(c.familyHue).toBe(families[c.family].hue);
+      expect(c.familyChroma).toBe(families[c.family].chroma);
     }
+  });
+});
+
+describe("analyzeImage", () => {
+  it("reads one sample per grid point", () => {
+    const { data, width, height } = landscape();
+    const a = analyzeImage(data, width, height);
+    expect(a.oklab).toHaveLength(a.points.length);
+    expect(a.oklab[0]).toEqual(rgbToOklab(...stratifiedSample(data, width, height, 10000)[0]));
+  });
+
+  it("gives the same palette as extractPalette at every Detail level", () => {
+    const { data, width, height } = landscape();
+    const a = analyzeImage(data, width, height);
+    for (const detail of DETAILS) {
+      expect(paletteFor(a, detail)).toEqual(extractPalette(data, width, height, { detail }));
+    }
+  });
+
+  it("returns families sorted by share whose members cover every sample", () => {
+    const { data, width, height } = landscape();
+    const a = analyzeImage(data, width, height);
+    const shares = a.families.map((f) => f.share);
+    expect(shares).toEqual([...shares].sort((x, y) => y - x));
+    const members = a.families.flatMap((f) => f.members);
+    expect(new Set(members).size).toBe(a.oklab.length);
+  });
+
+  it("returns empty results for an empty image", () => {
+    expect(analyzeImage(new Uint8ClampedArray(0), 0, 0)).toEqual({ points: [], oklab: [], families: [] });
   });
 });
 

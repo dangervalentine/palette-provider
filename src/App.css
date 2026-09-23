@@ -623,7 +623,7 @@ span.bold {
   color: var(--color-text-secondary);
 }
 
-/* Header, actions and strip stay in view while the chips scroll */
+/* Header, order, strip and tabs stay in view while the view scrolls */
 .palette-top {
   position: sticky;
   top: calc(-1 * var(--spacing-xl));
@@ -652,7 +652,7 @@ span.bold {
 }
 
 /* Every color at a glance. Hovering a color widens it to show its value;
-   clicking jumps to its chip. */
+   clicking copies it and selects its family. */
 .palette-strip {
   display: flex;
   height: clamp(44px, 6vh, 72px);
@@ -698,6 +698,11 @@ span.bold {
   outline-offset: -2px;
 }
 
+/* Shades of the selected family carry a bar in their own ink color */
+.palette-strip-segment.is-selected {
+  box-shadow: inset 0 -4px 0 var(--swatch-ink);
+}
+
 .palette-empty {
   flex: 1;
   display: flex;
@@ -707,103 +712,286 @@ span.bold {
   font-size: var(--font-size-small);
 }
 
-/* ── Swatch Cards ───────────────────────────────────────── */
+/* ── Palette Views (Breakdown / Color space) ──────────── */
 
-.swatch-grid {
-  display: grid;
-  /* --chip-min is set by fitChips so the whole palette fits the pane on
-     desktop; the fallback applies until it runs */
-  grid-template-columns: repeat(auto-fill, minmax(var(--chip-min, clamp(100px, 7vw, 160px)), 1fr));
-  gap: var(--spacing-lg);
+.view-tabs {
+  margin-top: var(--spacing-lg);
 }
 
-.swatch-card {
+.view-tabs .segment-btn {
+  flex: 1;
+  padding-block: var(--spacing-md);
+  font-size: var(--font-size-small);
+}
+
+.view-panel {
+  min-width: 0;
+}
+
+.view-caption {
+  margin: 0 0 var(--spacing-lg);
+  font-size: var(--font-size-small);
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.bd-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.bd-row {
+  padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-md);
-  background: var(--color-bg-surface);
-  border: var(--border-thin) solid var(--color-border);
-  box-shadow: var(--shadow-medium);
+  border: var(--border-thin) solid transparent;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.bd-row:hover {
+  background: var(--color-bg-elevated);
+}
+
+.bd-row.is-selected {
+  background: var(--color-primary-tint-soft);
+  border-color: var(--color-primary-main);
+}
+
+/* Swatch, share and bar; selects the family */
+.bd-select {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 20px 3.5rem 1fr;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
-  overflow: hidden;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.swatch-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-large);
+.bd-select:focus-visible {
+  outline: var(--border-medium) solid var(--color-primary-main);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
-.swatch-color {
-  position: relative;
-  aspect-ratio: 1 / 0.85;
-  border-bottom: var(--border-hairline) solid var(--color-border);
-}
-
-.swatch-remove {
-  position: absolute;
-  top: var(--spacing-sm);
-  right: var(--spacing-sm);
+.bd-swatch {
   width: 20px;
   height: 20px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0, 0, 0, 0.45);
-  color: white;
-  font-size: 14px;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity var(--transition-fast), background var(--transition-fast);
+  border-radius: var(--radius-sm);
+  border: var(--border-hairline) solid var(--color-border);
 }
 
-.swatch-card:hover .swatch-remove {
-  opacity: 1;
-}
-
-.swatch-remove:hover {
-  background: rgba(0, 0, 0, 0.7);
-}
-
-.swatch-label {
-  background: var(--color-bg-elevated);
-  padding: var(--spacing-md) var(--spacing-sm);
-  text-align: center;
-}
-
-.swatch-value {
-  display: block;
-  font-size: var(--font-size-tiny);
+.bd-share {
   font-family: var(--font-family-mono);
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-bold);
-  /* RGB/HSL values wrap on small chips; keep wrapped lines tight */
-  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.bd-track {
+  display: block;
+  min-width: 0;
+}
+
+/* The family's share of the image, split into its shades */
+.bd-bar {
+  display: flex;
+  min-width: 6px;
+  height: 14px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(var(--color-border-rgb), 0.6);
+}
+
+.bd-bar > span {
+  flex-basis: 0;
+  min-width: 2px;
+}
+
+.bd-shades {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs) var(--spacing-lg);
+  margin-top: var(--spacing-xs);
+  padding-left: calc(20px + 3.5rem + 2 * var(--spacing-md));
+}
+
+.bd-shade {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) 0;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-tiny);
+  cursor: pointer;
+}
+
+.bd-shade:hover,
+.bd-shade:focus-visible {
   color: var(--color-text-primary);
 }
 
-/* ── Tier Groups ───────────────────────────────────── */
-
-.tier-group {
-  margin-bottom: var(--spacing-lg);
+.bd-shade-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: var(--border-hairline) solid var(--color-border);
 }
 
-.tier-label {
-  display: flex;
+.bd-shade-value {
+  font-weight: var(--font-weight-bold);
+}
+
+.bd-shade-share {
+  color: var(--color-text-muted);
+}
+
+/* Color space plot, drawn by src/viz/colorSpace.js */
+.color-space-plot {
+  width: 100%;
+  max-width: min(400px, 46vh);
+  margin: 0 auto var(--spacing-lg);
+}
+
+.color-space-plot svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.cs-disc {
+  fill: var(--color-bg-elevated);
+  stroke: var(--color-border);
+}
+
+.cs-grid {
+  fill: none;
+  stroke: var(--color-border);
+  stroke-opacity: 0.7;
+}
+
+.cs-sep {
+  fill: none;
+  stroke: var(--color-primary-main);
+  stroke-opacity: 0.35;
+  stroke-dasharray: 4 4;
+}
+
+.cs-tick {
+  stroke: var(--color-text-primary);
+  stroke-width: 2;
+}
+
+.cs-hit {
+  fill: transparent;
+}
+
+.cs-peak {
+  stroke: var(--color-primary-main);
+  stroke-width: 2;
+}
+
+.cs-family {
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.cs-family.is-dim {
+  opacity: 0.25;
+}
+
+.cs-family.is-selected .cs-peak {
+  stroke: var(--color-text-primary);
+  stroke-width: 3;
+}
+
+.cs-family.is-selected .cs-sep {
+  stroke-opacity: 0.8;
+}
+
+.cs-members circle {
+  fill: var(--color-text-primary);
+  opacity: 0.55;
+}
+
+/* ── Sample Overlay ──────────────────────────────────── */
+
+canvas.sample-overlay {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  pointer-events: none;
+}
+
+.overlay-chip {
+  position: absolute;
+  left: var(--spacing-sm);
+  bottom: var(--spacing-sm);
+  z-index: var(--z-elevated);
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
   font-size: var(--font-size-tiny);
   font-weight: var(--font-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-muted);
-  margin-bottom: var(--spacing-md);
+  line-height: 1.4;
+  cursor: pointer;
 }
 
-.tier-count {
-  font-variant-numeric: tabular-nums;
-  color: var(--color-text-secondary);
-  opacity: 0.7;
+.overlay-chip:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.overlay-chip-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid white;
+}
+
+/* ── Toast ───────────────────────────────────────────── */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--spacing-xl) * 2);
+  transform: translateX(-50%);
+  z-index: var(--z-overlay);
+  pointer-events: none;
+}
+
+.toast-message {
+  display: block;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-elevated);
+  border: var(--border-thin) solid var(--color-border);
+  box-shadow: var(--shadow-large);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
 }
 
 .palette-actions {
@@ -919,7 +1107,7 @@ span.bold {
     font-size: var(--font-size-body);
   }
 
-  /* Image pinned on top, palette fills the rest; only the chips scroll */
+  /* Image pinned on top, palette fills the rest; only the view scrolls */
   .split-view {
     flex-direction: column;
     gap: var(--spacing-sm);
@@ -957,22 +1145,19 @@ span.bold {
 
   .palette-strip { height: 36px; }
 
-  .palette-edit {
-    display: inline-flex;
-    padding: var(--spacing-xs) var(--spacing-lg);
-  }
-
-  .btn-ghost.palette-edit.active {
-    background: var(--color-primary-main);
-    border-color: var(--color-primary-main);
-    color: var(--color-text-inverse);
-  }
-
-  .palette-tiers {
+  .view-panel {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    padding-top: var(--spacing-md);
   }
+
+  .view-tabs { margin-top: var(--spacing-md); }
+
+  .color-space-plot { max-width: 320px; }
+
+  /* Clear of the GitHub badge in the bottom band */
+  .toast { bottom: 5.5rem; }
 
   .palette-actions {
     flex-shrink: 0;
@@ -994,62 +1179,4 @@ span.bold {
   .image-remove {
     opacity: 1;
   }
-
-  /* Remove buttons only appear in edit mode */
-  .swatch-card .swatch-remove {
-    display: none;
-    opacity: 1;
-  }
-
-  .palette-panel.editing .swatch-remove {
-    display: flex;
-  }
-
-  /* Dense chips: hex overlaid on the color, no card chrome */
-  .swatch-grid {
-    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-lg);
-  }
-
-  .swatch-card {
-    position: relative;
-    border: var(--border-hairline) solid var(--color-border-transparent);
-    border-radius: var(--radius-sm);
-    box-shadow: none;
-  }
-
-  .swatch-card:hover {
-    transform: none;
-    box-shadow: none;
-  }
-
-  .swatch-color {
-    aspect-ratio: 1;
-    border-bottom: none;
-  }
-
-  .swatch-label {
-    position: absolute;
-    inset: auto 0 0 0;
-    padding: var(--spacing-xs);
-    background: transparent;
-    pointer-events: none;
-  }
-
-  .swatch-value {
-    display: block;
-    font-size: 9px;
-    line-height: 1.2;
-    color: var(--swatch-ink);
-    opacity: 0.85;
-  }
-
-  .swatch-remove {
-    top: var(--spacing-xs);
-    right: var(--spacing-xs);
-  }
-
-  .tier-group { margin-bottom: var(--spacing-md); }
-  .tier-label { margin-bottom: var(--spacing-sm); }
 }

@@ -86,7 +86,7 @@ export function useEyedropper(canvasRef, onSample) {
 
       if (rgb && onSample) {
         const okL = rgbToOklab(rgb[0], rgb[1], rgb[2])[0];
-        onSample({ color: rgb, tier: "sampled", okL });
+        onSample({ color: rgb, okL });
       }
     },
     [getSample, onSample]

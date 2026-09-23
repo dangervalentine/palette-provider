@@ -1,9 +1,11 @@
-import { useCallback, useState, useRef } from "react";
+import { useCallback, useMemo, useState, useRef } from "react";
 import Header from "./Header";
 import Toolbar from "./Toolbar";
 import { GithubAttribution } from "./GithubAttribution";
-import Palette from "./Palette";
-import { extractPalette, formatColor } from "./helpers";
+import ResultPanel from "./ResultPanel";
+import SampleOverlay from "./SampleOverlay";
+import { formatColor, copyToClipboard } from "./helpers";
+import { analyzeImage, paletteFor } from "./paletteEngine";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import EyedropperPreview from "./EyedropperPreview";
 import { useEyedropper } from "./hooks/useEyedropper";
@@ -13,15 +15,14 @@ import "./App.css";
 import upload from "./upload.svg";
 
 let imgSrc;
-let lastImageData;
-let lastWidth;
-let lastHeight;
 
 const ORDER_STORAGE_KEY = "palette-provider-order";
 
 const readStoredOrder = () => {
   try {
     const stored = localStorage.getItem(ORDER_STORAGE_KEY);
+    // "hue" was the earlier name for grouping by family
+    if (stored === "hue") return "family";
     return ORDERS.includes(stored) ? stored : "prevalence";
   } catch {
     return "prevalence";
@@ -35,41 +36,40 @@ const App = () => {
   const [detail, setDetail] = useState("balanced");
   const [colorFormat, setColorFormat] = useState("hex");
   const [order, setOrder] = useState(readStoredOrder);
-  const [colors, setColors] = useState([]);
-  const [hiddenKeys, setHiddenKeys] = useState(new Set());
+  // Everything the engine found in the current image; Detail only picks
+  // which of its precomputed shades make up the palette.
+  const [analysis, setAnalysis] = useState(null);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [selectedFamily, setSelectedFamily] = useState(null);
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(null);
   const photoContainer = useRef(null);
   const canvasRef = useRef(null);
   const inputRef = useRef(null);
 
-  const [sampledColors, setSampledColors] = useState([]);
-  const sampleCounter = useRef(0);
+  const colors = useMemo(
+    () =>
+      analysis
+        ? paletteFor(analysis, detail).map((c, i) => ({ ...c, key: `extracted-${i}` }))
+        : [],
+    [analysis, detail]
+  );
 
-  // Samples matching a color already shown are ignored. A hidden color can be
-  // sampled back in, so the RGB string alone still isn't a unique key.
+  const copy = useCallback((value, message = `Copied ${value}`) => {
+    copyToClipboard(value);
+    clearTimeout(toastTimer.current);
+    setToast(message);
+    toastTimer.current = setTimeout(() => setToast(null), 1400);
+  }, []);
+
+  // The eyedropper is read-only: it copies the pixel under the pointer and
+  // leaves the palette as the engine found it.
   const handleSampleColor = useCallback(
-    (sampledColor) => {
-      const rgb = sampledColor.color.join(",");
-      const key = `sampled-${sampleCounter.current++}`;
-      setSampledColors((prev) => {
-        const alreadyShown = [...colors, ...prev].some(
-          (c) => !hiddenKeys.has(c.key) && c.color.join(",") === rgb
-        );
-        return alreadyShown ? prev : [...prev, { ...sampledColor, key }];
-      });
-    },
-    [colors, hiddenKeys]
+    ({ color }) => copy(formatColor(color, colorFormat)),
+    [copy, colorFormat]
   );
 
   const eyedropper = useEyedropper(canvasRef, handleSampleColor);
-
-  const runExtraction = useCallback(
-    (imageData, width, height, opts) => {
-      const result = extractPalette(imageData, width, height, opts);
-      setColors(result.map((c, i) => ({ ...c, key: `extracted-${i}` })));
-      setHiddenKeys(new Set());
-    },
-    []
-  );
 
   const processImg = useCallback(
     (file) => {
@@ -89,25 +89,14 @@ const App = () => {
         const w = (canvas.width = img.width);
         const h = (canvas.height = img.height);
         ctx.drawImage(img, 0, 0, w, h);
-        lastImageData = ctx.getImageData(0, 0, w, h).data;
-        lastWidth = w;
-        lastHeight = h;
-        setSampledColors([]);
-        runExtraction(lastImageData, w, h, { detail });
+        const data = ctx.getImageData(0, 0, w, h).data;
+        setImageSize({ width: w, height: h });
+        setSelectedFamily(null);
+        setAnalysis(analyzeImage(data, w, h));
       };
       img.src = imgSrc;
     },
-    [fileName, detail, runExtraction]
-  );
-
-  const handleDetailChange = useCallback(
-    (newDetail) => {
-      setDetail(newDetail);
-      if (!lastImageData) return;
-      setSampledColors([]);
-      runExtraction(lastImageData, lastWidth, lastHeight, { detail: newDetail });
-    },
-    [runExtraction]
+    [fileName]
   );
 
   const onChange = (e) => {
@@ -132,14 +121,6 @@ const App = () => {
     photoContainer.current.classList.remove("drag-over");
   };
 
-  const handleRemoveColor = useCallback((key) => {
-    setHiddenKeys((prev) => new Set(prev).add(key));
-  }, []);
-
-  const visibleColors = [...colors, ...sampledColors].filter(
-    (c) => !hiddenKeys.has(c.key)
-  );
-
   const handleOrderChange = useCallback((next) => {
     setOrder(next);
     try {
@@ -150,10 +131,10 @@ const App = () => {
   }, []);
 
   const downloadPalette = useCallback(() => {
-    if (visibleColors.length === 0) return;
+    if (colors.length === 0) return;
 
     // The PNG matches the order shown in the palette strip
-    const sorted = orderColors(visibleColors, order);
+    const sorted = orderColors(colors, order);
 
     const canvas = document.createElement("canvas");
     canvas.width = 1200;
@@ -182,25 +163,76 @@ const App = () => {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  }, [visibleColors, order, colorFormat, fileName]);
+  }, [colors, order, colorFormat, fileName]);
 
   const hasImage = fileName !== "";
 
   const clearImage = useCallback(() => {
     imgSrc = undefined;
-    lastImageData = undefined;
-    lastWidth = undefined;
-    lastHeight = undefined;
     setFileName("");
     setImage("");
-    setColors([]);
-    setHiddenKeys(new Set());
-    setSampledColors([]);
+    setAnalysis(null);
+    setSelectedFamily(null);
   }, []);
 
   const handleOriginalPaneClick = useCallback(() => {
     inputRef.current?.click();
   }, []);
+
+  const selected = analysis?.families[selectedFamily];
+
+  const sourceImage = (
+    <div className="image-wrapper">
+      <button className="image-remove" onClick={clearImage}>
+        &times;
+      </button>
+      <img
+        ref={eyedropper.bindImage}
+        className="image-file eyedropper-active"
+        src={image}
+        alt="uploaded file"
+        {...eyedropper.handlers}
+      />
+      {selected && (
+        <>
+          <SampleOverlay
+            analysis={analysis}
+            family={selected}
+            width={imageSize.width}
+            height={imageSize.height}
+          />
+          <button
+            className="overlay-chip"
+            onClick={() => setSelectedFamily(null)}
+            aria-label="Stop showing this family's samples"
+          >
+            <span
+              className="overlay-chip-dot"
+              style={{ backgroundColor: `rgb(${selected.rgb.join(",")})` }}
+            />
+            <span>Samples of this family</span>
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </>
+      )}
+    </div>
+  );
+
+  const resultPanel = analysis ? (
+    <ResultPanel
+      analysis={analysis}
+      colors={colors}
+      detail={detail}
+      format={colorFormat}
+      order={order}
+      onOrderChange={handleOrderChange}
+      selectedFamily={selectedFamily}
+      onSelectFamily={setSelectedFamily}
+      onCopy={copy}
+      onDownload={downloadPalette}
+      isMobile={isMobile}
+    />
+  ) : null;
 
   const helperContent = !hasImage ? (
     <span className="helper-step">
@@ -216,7 +248,7 @@ const App = () => {
       <Toolbar
         hasImage={hasImage}
         detail={detail}
-        onDetailChange={handleDetailChange}
+        onDetailChange={setDetail}
         colorFormat={colorFormat}
         onColorFormatChange={setColorFormat}
         onChangeImage={() => inputRef.current?.click()}
@@ -240,30 +272,10 @@ const App = () => {
               <div className="split-view">
                 <div className="split-pane original-pane">
                   <div className="pane-label">Source</div>
-                  <div className="image-wrapper">
-                    <button className="image-remove" onClick={clearImage}>
-                      &times;
-                    </button>
-                    <img
-                      ref={eyedropper.bindImage}
-                      className="image-file eyedropper-active"
-                      src={image}
-                      alt="uploaded file"
-                      {...eyedropper.handlers}
-                    />
-                  </div>
+                  {sourceImage}
                 </div>
                 <div className="split-pane palette-pane">
-                  <div className="pane-label">Palette</div>
-                  <Palette
-                    colors={visibleColors}
-                    format={colorFormat}
-                    onDownload={downloadPalette}
-                    onRemoveColor={handleRemoveColor}
-                    isMobile={isMobile}
-                    order={order}
-                    onOrderChange={handleOrderChange}
-                  />
+                  {resultPanel}
                 </div>
               </div>
             ) : (
@@ -290,18 +302,7 @@ const App = () => {
                   {hasImage ? "Source" : "Upload"}
                 </div>
                 {hasImage ? (
-                  <div className="image-wrapper">
-                    <button className="image-remove" onClick={clearImage}>
-                      &times;
-                    </button>
-                    <img
-                      ref={eyedropper.bindImage}
-                      className="image-file eyedropper-active"
-                      src={image}
-                      alt="uploaded file"
-                      {...eyedropper.handlers}
-                    />
-                  </div>
+                  sourceImage
                 ) : (
                   <div className="empty-state">
                     <img src={upload} alt="upload" />
@@ -316,15 +317,7 @@ const App = () => {
                 {/* Once loaded, the palette's own header labels the pane */}
                 {!hasImage && <div className="pane-label">Palette</div>}
                 {hasImage ? (
-                  <Palette
-                    colors={visibleColors}
-                    format={colorFormat}
-                    onDownload={downloadPalette}
-                    onRemoveColor={handleRemoveColor}
-                    isMobile={isMobile}
-                    order={order}
-                    onOrderChange={handleOrderChange}
-                  />
+                  resultPanel
                 ) : (
                   <div className="empty-preview">
                     <svg
@@ -374,7 +367,7 @@ const App = () => {
                         fillOpacity="0.15"
                       />
                     </svg>
-                    <span>Your color palette will appear here</span>
+                    <span>Your palette, and how it was found, will appear here</span>
                   </div>
                 )}
               </div>
@@ -390,6 +383,9 @@ const App = () => {
         />
       </div>
       <EyedropperPreview preview={eyedropper.preview} format={colorFormat} />
+      <div className="toast" role="status" aria-live="polite">
+        {toast && <span className="toast-message">{toast}</span>}
+      </div>
       <GithubAttribution />
     </div>
   );
