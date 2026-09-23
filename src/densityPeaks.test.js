@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   buildDensityMap,
   findFamilies,
+  mergeFamilies,
   FAMILY_SEPARATION,
 } from "./densityPeaks";
 import { rgbToOklab, oklabDistance } from "./oklab";
@@ -126,5 +127,78 @@ describe("findFamilies", () => {
     const a = Array.from({ length: 1000 }, () => [0.5, -0.12, 0.1]);
     const b = Array.from({ length: 1000 }, () => [0.5, 0.12, 0.05]);
     expect(findFamilies([...a, ...b])).toHaveLength(2);
+  });
+});
+
+// A flat family of  identical pixels, as findFamilies would return it.
+function flatFamilies(specs) {
+  const pixels = [];
+  const families = specs.map(({ color, count }) => {
+    const members = [];
+    for (let i = 0; i < count; i++) members.push(pixels.push(color) - 1);
+    return { peak: color, color, members };
+  });
+  for (const f of families) f.share = f.members.length / pixels.length;
+  return { pixels, families };
+}
+
+describe("mergeFamilies", () => {
+  const darkGray = [0.35, 0, 0];
+  const midGray = [0.55, 0, 0];
+  const lightGray = [0.75, 0, 0];
+  const red = [0.6, 0.2, 0.1];
+
+  it("returns the families unchanged when already within the limit", () => {
+    const { pixels, families } = flatFamilies([
+      { color: darkGray, count: 50 },
+      { color: red, count: 50 },
+    ]);
+    expect(mergeFamilies(families, pixels, 3)).toBe(families);
+  });
+
+  it("merges shades of one color before a small distinct accent", () => {
+    const { pixels, families } = flatFamilies([
+      { color: darkGray, count: 400 },
+      { color: midGray, count: 300 },
+      { color: lightGray, count: 280 },
+      { color: red, count: 20 }, // 2% accent
+    ]);
+    const merged = mergeFamilies(families, pixels, 2);
+    expect(merged).toHaveLength(2);
+    expect(merged.map((f) => f.color)).toContainEqual(red);
+  });
+
+  it("lets the larger family absorb the smaller and keep its color", () => {
+    const { pixels, families } = flatFamilies([
+      { color: darkGray, count: 600 },
+      { color: midGray, count: 400 },
+    ]);
+    const [only] = mergeFamilies(families, pixels, 1);
+    expect(only.color).toEqual(darkGray);
+    expect(only.members).toHaveLength(1000);
+    expect(only.share).toBe(1);
+  });
+
+  it("covers every sample and sorts by share", () => {
+    const { pixels, families } = flatFamilies([
+      { color: darkGray, count: 100 },
+      { color: midGray, count: 300 },
+      { color: lightGray, count: 200 },
+      { color: red, count: 50 },
+    ]);
+    const merged = mergeFamilies(families, pixels, 2);
+    const all = merged.flatMap((f) => f.members).sort((a, b) => a - b);
+    expect(all).toEqual(pixels.map((_, i) => i));
+    expect(merged[0].share).toBeGreaterThanOrEqual(merged[1].share);
+  });
+
+  it("does not mutate the input families", () => {
+    const { pixels, families } = flatFamilies([
+      { color: darkGray, count: 100 },
+      { color: midGray, count: 100 },
+    ]);
+    mergeFamilies(families, pixels, 1);
+    expect(families[0].members).toHaveLength(100);
+    expect(families[1].members).toHaveLength(100);
   });
 });

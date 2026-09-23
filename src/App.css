@@ -102,6 +102,7 @@ header {
 .toolbar {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   padding: var(--spacing-md) var(--spacing-xl);
   background: var(--color-bg-elevated);
   border-bottom: var(--border-thin) solid var(--color-border);
@@ -125,7 +126,7 @@ header {
 
 .toolbar-divider {
   width: var(--border-thin);
-  height: var(--spacing-xxxl);
+  height: var(--spacing-4xl);
   background: var(--color-border);
   opacity: 0.5;
 }
@@ -138,6 +139,7 @@ header {
   justify-content: space-between;
   gap: var(--spacing-md);
   min-width: 84px;
+  min-height: var(--touch-target);
   font-size: var(--font-size-tiny);
   font-family: var(--font-family-body);
   font-weight: var(--font-weight-semibold);
@@ -145,7 +147,7 @@ header {
   color: var(--color-text-primary);
   border: var(--border-thin) solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
   cursor: pointer;
   transition: border-color var(--transition-fast);
 }
@@ -189,6 +191,7 @@ header {
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-md);
+  min-height: var(--touch-target);
   padding: var(--spacing-md) var(--spacing-md);
   border-radius: var(--radius-sm);
   font-family: var(--font-family-body);
@@ -220,7 +223,8 @@ header {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-lg);
+  min-height: var(--touch-target);
+  padding: var(--spacing-sm) var(--spacing-xl);
   border-radius: var(--radius-md);
   border: var(--border-thin) solid var(--color-primary-dark);
   background: var(--color-primary-tint);
@@ -251,7 +255,8 @@ header {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-lg);
+  min-height: var(--touch-target);
+  padding: var(--spacing-sm) var(--spacing-xl);
   border-radius: var(--radius-md);
   border: var(--border-thin) solid var(--color-primary-solid);
   background: var(--color-primary-solid);
@@ -278,7 +283,8 @@ header {
 }
 
 .segment-btn {
-  padding: var(--spacing-sm) var(--spacing-lg);
+  min-height: var(--touch-target);
+  padding: var(--spacing-sm) var(--spacing-xl);
   font-size: var(--font-size-tiny);
   font-family: var(--font-family-body);
   font-weight: var(--font-weight-semibold);
@@ -388,8 +394,7 @@ header {
   transition: opacity var(--transition-fast);
 }
 
-.original-pane:not(:has(.image-wrapper)):hover .empty-state img,
-.photo.border:hover .empty-state img {
+.original-pane:not(:has(.image-wrapper)):hover .empty-state img {
   opacity: 0.7;
 }
 
@@ -403,29 +408,6 @@ header {
   margin-top: var(--spacing-sm);
 }
 
-.photo {
-  cursor: pointer;
-  width: calc(100% - 2em);
-  height: calc(100% - 2em);
-  border-radius: var(--radius-lg);
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: var(--font-weight-semibold);
-  position: relative;
-}
-
-.border {
-  border: var(--border-medium) dashed var(--color-border);
-  transition: border-color var(--transition-fast), background var(--transition-fast);
-}
-
-.border:hover {
-  border-color: var(--color-primary-main);
-  background: var(--color-primary-tint-soft);
-}
-
 /* Empty preview placeholder */
 .empty-preview {
   display: flex;
@@ -436,6 +418,7 @@ header {
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-medium);
   opacity: 0.5;
+  text-align: center;
   user-select: none;
 }
 
@@ -544,6 +527,32 @@ header {
   background: rgba(0, 0, 0, 0.7);
 }
 
+.image-replace {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  height: var(--touch-target);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 0 var(--spacing-lg);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.45);
+  color: white;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-tiny);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  cursor: pointer;
+  z-index: var(--z-elevated);
+  transition: background var(--transition-fast);
+}
+
+.image-replace:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
 /* Mobile centering container */
 .mobile-center {
   width: 100%;
@@ -623,7 +632,7 @@ span.bold {
   color: var(--color-text-secondary);
 }
 
-/* Header, actions and strip stay in view while the chips scroll */
+/* Header, order, strip and tabs stay in view while the view scrolls */
 .palette-top {
   position: sticky;
   top: calc(-1 * var(--spacing-xl));
@@ -635,12 +644,19 @@ span.bold {
   border-bottom: var(--border-thin) solid var(--color-border-transparent);
 }
 
-/* Strip order toggle (prevalence / hue) */
+/* Strip order toggle (prevalence / hue) on the left, Download on the right */
+.palette-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
 .palette-order {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
 }
 
 .palette-order-label {
@@ -651,8 +667,8 @@ span.bold {
   color: var(--color-text-muted);
 }
 
-/* Every color at a glance. Hovering a color widens it to show its value;
-   clicking jumps to its chip. */
+/* Every color at a glance. Hovering a color widens it just enough to show
+   its value; clicking copies it and toggles its family's selection. */
 .palette-strip {
   display: flex;
   height: clamp(44px, 6vh, 72px);
@@ -662,6 +678,7 @@ span.bold {
 }
 
 .palette-strip-segment {
+  position: relative;
   flex: 1 1 0;
   min-width: 0;
   display: flex;
@@ -669,33 +686,89 @@ span.bold {
   justify-content: center;
   border: none;
   padding: 0;
-  cursor: pointer;
-  transition: flex-grow var(--transition-normal);
-}
-
-.palette-strip-value {
+  /* Set here so 1ch below measures the value's own characters */
   font-family: var(--font-family-mono);
   font-size: var(--font-size-tiny);
   font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: min-width var(--transition-normal);
+}
+
+.palette-strip-value {
   white-space: nowrap;
   color: var(--swatch-ink);
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
 
-.palette-strip-segment:hover,
+/* A segment already wide enough for its value doesn't move at all.
+   On touch, pressing a segment stands in for hovering it. */
+.palette-strip-segment[data-pressed],
 .palette-strip-segment:focus-visible {
-  flex-grow: 3;
+  min-width: calc(var(--value-length) * 1ch + 2 * var(--spacing-md));
 }
 
-.palette-strip-segment:hover .palette-strip-value,
+.palette-strip-segment[data-pressed] .palette-strip-value,
 .palette-strip-segment:focus-visible .palette-strip-value {
   opacity: 0.9;
+}
+
+/* Real hover only, so a tap doesn't leave a segment stuck open */
+@media (hover: hover) {
+  .palette-strip-segment:hover {
+    min-width: calc(var(--value-length) * 1ch + 2 * var(--spacing-md));
+  }
+
+  .palette-strip-segment:hover .palette-strip-value {
+    opacity: 0.9;
+  }
 }
 
 .palette-strip-segment:focus-visible {
   outline: var(--border-medium) solid var(--color-primary-main);
   outline-offset: -2px;
+}
+
+/* Shades of the selected family carry a small dot in their ink color. A dot,
+   not an edge bar, so every segment keeps the same height. */
+.palette-strip-segment.is-selected::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--swatch-ink);
+  opacity: 0.85;
+  transform: translateX(-50%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .palette-strip-segment.is-selected::after {
+    animation: strip-dot-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .bd-row.is-selected .bd-swatch {
+    animation: swatch-pop 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .bd-bar {
+    transition: width var(--transition-slow);
+  }
+}
+
+@keyframes strip-dot-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0);
+  }
+}
+
+@keyframes swatch-pop {
+  50% {
+    transform: scale(1.3);
+  }
 }
 
 .palette-empty {
@@ -707,113 +780,420 @@ span.bold {
   font-size: var(--font-size-small);
 }
 
-/* ── Swatch Cards ───────────────────────────────────────── */
+/* ── Palette Views (Breakdown / Color space) ──────────── */
 
-.swatch-grid {
-  display: grid;
-  /* --chip-min is set by fitChips so the whole palette fits the pane on
-     desktop; the fallback applies until it runs */
-  grid-template-columns: repeat(auto-fill, minmax(var(--chip-min, clamp(100px, 7vw, 160px)), 1fr));
-  gap: var(--spacing-lg);
+.view-tabs {
+  margin-top: var(--spacing-lg);
 }
 
-.swatch-card {
-  border-radius: var(--radius-md);
-  background: var(--color-bg-surface);
-  border: var(--border-thin) solid var(--color-border);
-  box-shadow: var(--shadow-medium);
-  cursor: pointer;
-  overflow: hidden;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+.view-tabs .segment-btn {
+  flex: 1;
+  padding-block: var(--spacing-md);
+  font-size: var(--font-size-small);
 }
 
-.swatch-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-large);
+.view-panels {
+  display: contents;
 }
 
-.swatch-color {
-  position: relative;
-  aspect-ratio: 1 / 0.85;
-  border-bottom: var(--border-hairline) solid var(--color-border);
+.view-panel {
+  min-width: 0;
 }
 
-.swatch-remove {
-  position: absolute;
-  top: var(--spacing-sm);
-  right: var(--spacing-sm);
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0, 0, 0, 0.45);
-  color: white;
-  font-size: 14px;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity var(--transition-fast), background var(--transition-fast);
+.views-both .view-panel:not(.is-active),
+.view-heading {
+  display: none;
 }
 
-.swatch-card:hover .swatch-remove {
-  opacity: 1;
-}
-
-.swatch-remove:hover {
-  background: rgba(0, 0, 0, 0.7);
-}
-
-.swatch-label {
-  background: var(--color-bg-elevated);
-  padding: var(--spacing-md) var(--spacing-sm);
-  text-align: center;
-}
-
-.swatch-value {
-  display: block;
-  font-size: var(--font-size-tiny);
-  font-family: var(--font-family-mono);
-  font-weight: var(--font-weight-bold);
-  /* RGB/HSL values wrap on small chips; keep wrapped lines tight */
-  line-height: 1.25;
-  color: var(--color-text-primary);
-}
-
-/* ── Tier Groups ───────────────────────────────────── */
-
-.tier-group {
-  margin-bottom: var(--spacing-lg);
-}
-
-.tier-label {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
+.view-heading {
+  margin: 0 0 var(--spacing-md);
   font-size: var(--font-size-tiny);
   font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--color-text-muted);
+}
+
+/* On desktop a wide enough pane shows both views at once, without tabs */
+@media (min-width: 801px) {
+  .palette-pane {
+    container: palette / inline-size;
+  }
+}
+
+@container palette (min-width: 640px) {
+  .views-both .view-tabs {
+    display: none;
+  }
+
+  .views-both .view-panels {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--spacing-4xl);
+    align-items: start;
+  }
+
+  .views-both .view-panel:not(.is-active),
+  .views-both .view-heading {
+    display: block;
+  }
+
+  .views-both .color-space-plot {
+    max-width: min(100%, 56vh);
+  }
+}
+
+.view-caption {
+  margin: 0 0 var(--spacing-lg);
+  font-size: var(--font-size-small);
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.bd-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.bd-row {
+  position: relative;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: var(--border-thin) solid transparent;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+/* Pressing anywhere in the row stands in for hovering it on touch */
+.bd-row[data-pressed] {
+  background: var(--color-bg-elevated);
+}
+
+@media (hover: hover) {
+  .bd-row:hover {
+    background: var(--color-bg-elevated);
+  }
+}
+
+.bd-row.is-selected {
+  background: var(--color-primary-tint-soft);
+  border-color: var(--color-primary-main);
+}
+
+/* Swatch, share and bar; selects the family */
+.bd-select {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 20px 3.5rem 1fr;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Stretches the family button over the whole row, so the row's padding and
+   the space around the shade values select the family too */
+.bd-select::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.bd-select:focus-visible {
+  outline: var(--border-medium) solid var(--color-primary-main);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.bd-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  border: var(--border-hairline) solid var(--color-border);
+}
+
+.bd-share {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.bd-track {
+  display: block;
+  min-width: 0;
+}
+
+/* The family's share of the image, split into its shades */
+.bd-bar {
+  display: flex;
+  min-width: 6px;
+  height: 14px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(var(--color-border-rgb), 0.6);
+}
+
+.bd-bar > span {
+  flex-basis: 0;
+  min-width: 2px;
+}
+
+.bd-shades {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs) var(--spacing-lg);
+  margin-top: var(--spacing-xs);
+  padding-left: calc(20px + 3.5rem + 2 * var(--spacing-md));
+}
+
+.bd-shade {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) 0;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-tiny);
+  cursor: pointer;
+}
+
+.bd-shade[data-pressed],
+.bd-shade:focus-visible {
+  color: var(--color-text-primary);
+}
+
+@media (hover: hover) {
+  .bd-shade:hover {
+    color: var(--color-text-primary);
+  }
+}
+
+/* The one selected shade: its value in full ink and its dot ringed */
+.bd-shade.is-selected {
+  color: var(--color-text-primary);
+}
+
+.bd-shade.is-selected .bd-shade-dot {
+  outline: var(--border-medium) solid var(--color-primary-main);
+  outline-offset: 1px;
+}
+
+.bd-shade-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: var(--border-hairline) solid var(--color-border);
+}
+
+.bd-shade-value {
+  font-weight: var(--font-weight-bold);
+}
+
+.bd-shade-share {
+  color: var(--color-text-muted);
+}
+
+/* Color space plot, drawn by src/viz/colorSpace.js */
+.color-space-plot {
+  width: 100%;
+  max-width: min(400px, 46vh);
+  margin: 0 auto var(--spacing-lg);
+}
+
+.color-space-plot svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.cs-disc {
+  fill: var(--color-bg-elevated);
+  stroke: var(--color-border);
+}
+
+.cs-grid {
+  fill: none;
+  stroke: var(--color-border);
+  stroke-opacity: 0.7;
+}
+
+.cs-sep {
+  fill: none;
+  stroke: var(--color-primary-main);
+  stroke-opacity: 0.35;
+  stroke-dasharray: 4 4;
+  transition: stroke-opacity var(--transition-normal);
+}
+
+.cs-tick {
+  stroke: var(--color-text-primary);
+  stroke-width: 2;
+}
+
+.cs-hit {
+  fill: transparent;
+}
+
+.cs-peak {
+  stroke: var(--color-primary-main);
+  stroke-width: 2;
+  transition: stroke var(--transition-fast), stroke-width var(--transition-fast);
+}
+
+/* Peaks and their circles scale about their own centers when animated */
+.cs-peak,
+.cs-sep {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.cs-family {
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.cs-family.is-dim {
+  opacity: 0.25;
+}
+
+.cs-family.is-selected .cs-peak {
+  stroke: var(--color-text-primary);
+  stroke-width: 3;
+}
+
+.cs-family.is-selected .cs-sep {
+  stroke-opacity: 0.8;
+}
+
+.color-space .view-caption {
   margin-bottom: var(--spacing-md);
 }
 
-.tier-count {
-  font-variant-numeric: tabular-nums;
+.cs-legend {
+  list-style: none;
+  margin: var(--spacing-lg) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-small);
   color: var(--color-text-secondary);
-  opacity: 0.7;
 }
 
-.palette-actions {
+.cs-legend li {
   display: flex;
+  align-items: center;
   gap: var(--spacing-md);
 }
 
-.palette-header .palette-actions .btn-ghost,
-.palette-header .palette-actions .btn-primary {
-  padding: var(--spacing-md) var(--spacing-xl);
+.cs-legend-glyph {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  overflow: visible;
+}
+
+/* The plot's separation circle, drawn stronger so it reads at this size */
+.cs-legend-sep {
+  fill: none;
+  stroke: var(--color-primary-main);
+  stroke-opacity: 0.8;
+  stroke-dasharray: 3 3;
+}
+
+.cs-members circle {
+  fill: var(--color-text-primary);
+  opacity: 0.55;
+}
+
+/* ── Sample Overlay ──────────────────────────────────── */
+
+canvas.sample-overlay {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+canvas.sample-overlay.is-shown {
+  opacity: 1;
+}
+
+.overlay-chip {
+  position: absolute;
+  left: var(--spacing-sm);
+  bottom: var(--spacing-sm);
+  z-index: var(--z-elevated);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: var(--font-size-tiny);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.overlay-chip:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.overlay-chip-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid white;
+}
+
+/* ── Toast ───────────────────────────────────────────── */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--spacing-xl) * 2);
+  transform: translateX(-50%);
+  z-index: var(--z-overlay);
+  pointer-events: none;
+}
+
+.toast-message {
+  display: block;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-elevated);
+  border: var(--border-thin) solid var(--color-border);
+  box-shadow: var(--shadow-large);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
+.palette-download {
   font-size: var(--font-size-small);
 }
 
@@ -877,11 +1257,6 @@ span.bold {
   .header-text p { font-size: var(--font-size-small); }
   .header-text { margin: 0 0 0 var(--spacing-md); }
   .title { font-size: var(--font-size-large); }
-  .header-upload {
-    margin-left: auto;
-    padding: var(--spacing-sm) var(--spacing-md);
-  }
-  .theme-toggle { margin-left: var(--spacing-lg); }
 
   .toolbar {
     gap: var(--spacing-md);
@@ -910,16 +1285,14 @@ span.bold {
     padding: var(--spacing-sm) var(--spacing-md);
   }
 
-  .logo { order: 1; }
   .photo-container { height: 100%; width: 100%; }
-  .photo { width: calc(100% - 1em); height: calc(100% - 1em); margin: 0; }
 
   .select-item {
     padding: var(--spacing-lg) var(--spacing-md);
     font-size: var(--font-size-body);
   }
 
-  /* Image pinned on top, palette fills the rest; only the chips scroll */
+  /* Image pinned on top, palette fills the rest; only the view scrolls */
   .split-view {
     flex-direction: column;
     gap: var(--spacing-sm);
@@ -933,6 +1306,11 @@ span.bold {
   }
 
   .pane-label { display: none; }
+
+  /* Before an upload, the stacked panes split the height like the desktop
+     columns split the width, and keep their labels */
+  .split-view.is-empty .split-pane { flex: 1; }
+  .split-view.is-empty .pane-label { display: block; }
 
   .palette-pane {
     flex: 1;
@@ -957,99 +1335,36 @@ span.bold {
 
   .palette-strip { height: 36px; }
 
-  .palette-edit {
-    display: inline-flex;
-    padding: var(--spacing-xs) var(--spacing-lg);
-  }
-
-  .btn-ghost.palette-edit.active {
-    background: var(--color-primary-main);
-    border-color: var(--color-primary-main);
-    color: var(--color-text-inverse);
-  }
-
-  .palette-tiers {
+  .view-panel {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-  }
-
-  .palette-actions {
-    flex-shrink: 0;
+    overscroll-behavior: contain;
+    overflow-anchor: none;
     padding-top: var(--spacing-md);
-    border-top: var(--border-thin) solid var(--color-border);
   }
 
-  .palette-actions .btn-ghost,
-  .palette-actions .btn-primary {
-    flex: 1;
-    justify-content: center;
-    padding: var(--spacing-md);
+  /* The first 18dvh of scroll collapse the image (30dvh to 12dvh) instead of
+     moving the view: the content is pushed down by exactly what has scrolled,
+     so it holds still while the pane grows, and its top is still in view
+     once the image is small. The min-height (measured against the pane's
+     uncollapsed height) leaves exactly enough to scroll for a full collapse
+     however short the view is, and no more. */
+  .view-panel > * {
+    min-height: calc(100% + 18dvh - var(--image-shrink, 0px));
+    transform: translateY(var(--image-shrink, 0px));
   }
 
+  .view-tabs { margin-top: var(--spacing-md); }
+
+  .color-space-plot { max-width: min(260px, 36dvh); }
+
+  /* Clear of the GitHub badge in the bottom band */
+  .toast { bottom: 5.5rem; }
+
+  /* --image-shrink grows as the views scroll (see ResultPanel), taking the
+     image from 30dvh down to 12dvh and giving that height to the views */
   .image-file {
-    max-height: 30dvh;
+    max-height: calc(30dvh - var(--image-shrink, 0px));
   }
-
-  .image-remove {
-    opacity: 1;
-  }
-
-  /* Remove buttons only appear in edit mode */
-  .swatch-card .swatch-remove {
-    display: none;
-    opacity: 1;
-  }
-
-  .palette-panel.editing .swatch-remove {
-    display: flex;
-  }
-
-  /* Dense chips: hex overlaid on the color, no card chrome */
-  .swatch-grid {
-    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-lg);
-  }
-
-  .swatch-card {
-    position: relative;
-    border: var(--border-hairline) solid var(--color-border-transparent);
-    border-radius: var(--radius-sm);
-    box-shadow: none;
-  }
-
-  .swatch-card:hover {
-    transform: none;
-    box-shadow: none;
-  }
-
-  .swatch-color {
-    aspect-ratio: 1;
-    border-bottom: none;
-  }
-
-  .swatch-label {
-    position: absolute;
-    inset: auto 0 0 0;
-    padding: var(--spacing-xs);
-    background: transparent;
-    pointer-events: none;
-  }
-
-  .swatch-value {
-    display: block;
-    font-size: 9px;
-    line-height: 1.2;
-    color: var(--swatch-ink);
-    opacity: 0.85;
-  }
-
-  .swatch-remove {
-    top: var(--spacing-xs);
-    right: var(--spacing-xs);
-  }
-
-  .tier-group { margin-bottom: var(--spacing-md); }
-  .tier-label { margin-bottom: var(--spacing-sm); }
 }

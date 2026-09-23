@@ -62,22 +62,21 @@ function palettePanel(a, x, y, w, h) {
   const g = group();
   g.append(rect(x, y, w, h, { rx: 10, class: "panel" }));
   g.append(text(x + 16, y + 26, "PALETTE", { class: "label", fill: "#d6deeb" }));
-  const counts = ["dominant", "supporting", "accent"]
-    .map((t) => `${(a.byTier[t] ?? []).length} ${t.slice(0, 3)}`)
-    .join(" · ");
-  // Tier counts sit along the bottom so they do not crowd the PALETTE label.
-  g.append(text(x + 16, y + h - 16, counts.toUpperCase(), { class: "label-muted", style: "font-size:12px;letter-spacing:0.12em" }));
-  const rows = ["dominant", "supporting", "accent"].flatMap((t) => a.byTier[t] ?? []);
+  // Counts sit along the bottom so they do not crowd the PALETTE label.
+  g.append(text(x + 16, y + h - 16, `${a.families.length} FAMILIES · ${a.entries.length} COLORS`, { class: "label-muted", style: "font-size:12px;letter-spacing:0.12em" }));
+  // Family order, as the app's strip shows it; the top family is highlighted.
+  const rows = a.byFamily;
   const perCol = Math.ceil(rows.length / 2);
   rows.forEach((e, i) => {
     const col = Math.floor(i / perCol);
     const row = i % perCol;
     const rx = x + 12 + col * (w / 2);
     const ry = y + 50 + row * 22;
-    if (i === 0) g.append(rect(rx - 6, ry - 15, w / 2 - 8, 21, { rx: 4, fill: "rgba(130,170,255,0.14)" }));
+    const top = e.family === 0;
+    if (top) g.append(rect(rx - 6, ry - 15, w / 2 - 8, 21, { rx: 4, fill: "rgba(130,170,255,0.14)" }));
     g.append(circle(rx + 5, ry - 5, 5, { fill: `rgb(${e.color.join(",")})`, stroke: "rgba(255,255,255,0.15)" }));
     g.append(text(rx + 16, ry, e.hex, { class: "value", style: "font-size:13px" }));
-    g.append(text(rx + w / 2 - 22, ry, pct(e.percentage / 100), { class: "value", "text-anchor": "end", style: "font-size:13px", fill: i === 0 ? PRIMARY : "#9db2c0" }));
+    g.append(text(rx + w / 2 - 22, ry, pct(e.percentage / 100), { class: "value", "text-anchor": "end", style: "font-size:13px", fill: top ? PRIMARY : "#9db2c0" }));
   });
   return g;
 }

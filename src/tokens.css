@@ -223,6 +223,9 @@
   --spacing-5xl: 48px;
   --spacing-6xl: 64px;
 
+  /* Smallest height for anything tapped (WCAG 2.5.5, Apple HIG) */
+  --touch-target: 44px;
+
   /* --- Border radii --- */
   --radius-sm: 4px;
   --radius-md: 8px;

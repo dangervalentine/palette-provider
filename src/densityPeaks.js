@@ -177,3 +177,57 @@ export function findFamilies(oklabPixels, options = {}) {
     }))
     .sort((a, b) => b.share - a.share);
 }
+
+// Lightness counts this much when deciding which families to merge for a
+// shorter palette. Lower than LIGHTNESS_WEIGHT: families that differ mostly in
+// lightness are the cheapest to merge, because Detail brings the lightness
+// back as shades.
+export const MERGE_LIGHTNESS_WEIGHT = 0.15;
+
+// Merges families until at most maxFamilies remain, always merging the closest
+// pair. Size plays no part, so a small accent that is far from everything
+// outlasts large families that are shades of one color; findFamilies has
+// already dropped anything too small to matter. The larger family absorbs the
+// smaller one's members and keeps its own peak and color, so a merge never
+// averages two colors into a muddy one. Returns families sorted by share, in
+// the same shape findFamilies returns.
+export function mergeFamilies(
+  families,
+  oklabPixels,
+  maxFamilies,
+  lightnessWeight = MERGE_LIGHTNESS_WEIGHT
+) {
+  if (families.length <= maxFamilies) return families;
+  const total = oklabPixels.length;
+  const groups = families.map((f) => ({ ...f, members: [...f.members] }));
+
+  const distance = (a, b) => {
+    const dL = (a[0] - b[0]) * lightnessWeight;
+    const da = a[1] - b[1];
+    const db = a[2] - b[2];
+    return Math.sqrt(dL * dL + da * da + db * db);
+  };
+
+  while (groups.length > Math.max(1, maxFamilies)) {
+    let closest = Infinity;
+    let pair = null;
+    for (let i = 0; i < groups.length; i++) {
+      for (let j = i + 1; j < groups.length; j++) {
+        const d = distance(groups[i].color, groups[j].color);
+        if (d < closest) {
+          closest = d;
+          pair = [i, j];
+        }
+      }
+    }
+    const [i, j] = pair;
+    const [keep, drop] =
+      groups[i].members.length >= groups[j].members.length ? [i, j] : [j, i];
+    for (const m of groups[drop].members) groups[keep].members.push(m);
+    groups.splice(drop, 1);
+  }
+
+  return groups
+    .map((g) => ({ ...g, share: g.members.length / total }))
+    .sort((a, b) => b.share - a.share);
+}
