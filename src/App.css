@@ -662,6 +662,7 @@ span.bold {
 }
 
 .palette-strip-segment {
+  position: relative;
   flex: 1 1 0;
   min-width: 0;
   display: flex;
@@ -698,9 +699,19 @@ span.bold {
   outline-offset: -2px;
 }
 
-/* Shades of the selected family carry a bar in their own ink color */
-.palette-strip-segment.is-selected {
-  box-shadow: inset 0 -4px 0 var(--swatch-ink);
+/* Shades of the selected family carry a small dot in their ink color. A dot,
+   not an edge bar, so every segment keeps the same height. */
+.palette-strip-segment.is-selected::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--swatch-ink);
+  opacity: 0.85;
+  transform: translateX(-50%);
 }
 
 .palette-empty {
@@ -1149,12 +1160,25 @@ canvas.sample-overlay {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    overflow-anchor: none;
     padding-top: var(--spacing-md);
+  }
+
+  /* The first 18dvh of scroll collapse the image (30dvh to 12dvh) instead of
+     moving the view: the content is pushed down by exactly what has scrolled,
+     so it holds still while the pane grows, and its top is still in view
+     once the image is small. The min-height (measured against the pane's
+     uncollapsed height) leaves exactly enough to scroll for a full collapse
+     however short the view is, and no more. */
+  .view-panel > * {
+    min-height: calc(100% + 18dvh - var(--image-shrink, 0px));
+    transform: translateY(var(--image-shrink, 0px));
   }
 
   .view-tabs { margin-top: var(--spacing-md); }
 
-  .color-space-plot { max-width: 320px; }
+  .color-space-plot { max-width: min(260px, 36dvh); }
 
   /* Clear of the GitHub badge in the bottom band */
   .toast { bottom: 5.5rem; }
@@ -1172,8 +1196,10 @@ canvas.sample-overlay {
     padding: var(--spacing-md);
   }
 
+  /* --image-shrink grows as the views scroll (see ResultPanel), taking the
+     image from 30dvh down to 12dvh and giving that height to the views */
   .image-file {
-    max-height: 30dvh;
+    max-height: calc(30dvh - var(--image-shrink, 0px));
   }
 
   .image-remove {

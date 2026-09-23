@@ -12,6 +12,12 @@ const VIEWS = [
 ];
 const VIEW_STORAGE_KEY = "palette-provider-view";
 
+// On mobile, scrolling the views shrinks the source image by the same amount,
+// down to this share of the viewport height, to give the views more room.
+// Scrolling back up grows it again. Must match the mobile image CSS.
+const IMAGE_MAX_VH = 30;
+const IMAGE_MIN_VH = 12;
+
 const readStoredView = () => {
   try {
     const stored = localStorage.getItem(VIEW_STORAGE_KEY);
@@ -60,6 +66,16 @@ const ResultPanel = ({
   };
 
   const ordered = orderColors(colors, order);
+
+  // Writes the shrink straight to a CSS variable rather than React state, so
+  // scrolling never re-renders the panel.
+  const onViewScroll = (e) => {
+    const panel = e.currentTarget;
+    const range = ((IMAGE_MAX_VH - IMAGE_MIN_VH) / 100) * window.innerHeight;
+    panel
+      .closest(".split-view")
+      ?.style.setProperty("--image-shrink", `${Math.min(panel.scrollTop, range)}px`);
+  };
 
   const copyAll = () =>
     onCopy(
@@ -170,6 +186,7 @@ const ResultPanel = ({
         role="tabpanel"
         id={`view-panel-${view}`}
         aria-labelledby={`view-tab-${view}`}
+        onScroll={isMobile ? onViewScroll : undefined}
       >
         {view === "breakdown" ? (
           <Breakdown
